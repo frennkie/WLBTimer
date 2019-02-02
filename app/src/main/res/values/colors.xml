@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--<color title="colorPrimary">#3F51B5</color>-->
+    <!--<color title="colorPrimaryDark">#303F9F</color>-->
+    <!--<color title="colorAccent">#FF4081</color>-->
+
+    <color name="white">#FFFFFF</color>
+
+    <color name="md_bottom_sheet_title_color">#FF4081</color>
+
+    <color name="grayTextColor">#484848</color>
+    <color name="md_bottom_sheet_text_color">#305f7c</color>
+
+
+    <color name="work_default">#aed4a1</color>
+    <color name="work_on_call">#d78da6</color>
+    <color name="work_travel">#ffd07e</color>
+    <color name="work_travel_long_distance">#ffb120</color>
+
+    <color name="non_work_default">#a89aaf</color>
+    <color name="non_work_vacation">#61307c</color>
+    <color name="non_work_public_holiday">#8f57bf</color>
+    <color name="non_work_sick_leave">#7c306a</color>
+
+    <color name="black_overlay">#66000000</color>
+
+</resources>

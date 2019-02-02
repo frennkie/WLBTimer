@@ -1,0 +1,19 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- NOTE: Hide buttons to simplify the UI. Users can touch outside the dialog to
+         dismiss it. -->
+
+    <SwitchPreference
+        android:clickable="false"
+        android:defaultValue="true"
+        android:key="@string/pref_key_cloud_sync"
+        android:summary="@string/pref_description_cloud_sync"
+        android:title="@string/pref_title_cloud_sync" />
+
+    <!-- This preference simply launches an intent when selected. Use this UI sparingly, per
+         design guidelines. -->
+    <!--<Preference android:title="@string/pref_title_system_sync_settings">-->
+        <!--<intent android:action="android.settings.SYNC_SETTINGS" />-->
+    <!--</Preference>-->
+
+</PreferenceScreen>
