@@ -1,0 +1,182 @@
+<resources>
+    <string name="app_name">WLB Timer</string>
+
+    <string name="title_home">Home</string>
+
+    <string name="btn_add">Add</string>
+    <string name="btn_list">List</string>
+    <string name="btn_data">Data</string>
+    <string name="ab_sign_out">Sign out</string>
+
+    <string name="running_text_view">Running</string>
+    <string name="running_details_text_view">Running Details</string>
+
+    <string name="bottom_sheet_session_heading">Session Details</string>
+
+    <string name="bottom_sheet_start_date_time">Start Date</string>
+    <string name="bottom_sheet_start_timezone">Start Time/Zone</string>
+
+    <string name="bottom_sheet_end_date_time">End Date</string>
+    <string name="bottom_sheet_end_timezone">End Time/Zone</string>
+
+    <string name="bottom_sheet_breaks">Breaks</string>
+    <string name="bottom_sheet_breaks_desc">Total Break Time</string>
+
+    <string name="bottom_sheet_duration">Duration</string>
+    <string name="bottom_sheet_duration_desc">Time weighted, excl. Breaks</string>
+
+    <string name="bottom_sheet_category">Category</string>
+
+    <string name="bottom_sheet_remove_session">Remove</string>
+
+
+    <string name="greeting">Hello World!</string>
+    <string name="greeting2">Hello to you too!</string>
+    <string name="user">User</string>
+
+    <string name="backend_ver">Backend Version</string>
+    <string name="client_version">Client Version</string>
+
+    <string name="btn_demo">Get Backend Version</string>
+    <string name="btn_update">Update</string>
+    <string name="btn_crash">Crash</string>
+
+    <string name="title_activity_settings">Settings</string>
+    <string name="title_activity_data">DataActivity</string>
+    <string name="title_activity_list">ListActivity</string>
+
+    <!-- Strings related to Top Navigation -->
+    <string name="top_nav_add">Add</string>
+    <string name="top_nav_report">Report</string>
+
+
+    <!-- Strings related to Drawer Navigation -->
+    <string name="drawer_nav_title_top">WLB</string>
+    <string name="drawer_nav_title_customize">Customize</string>
+    <string name="drawer_nav_home">Home</string>
+    <string name="drawer_nav_sessions">Sessions</string>
+    <string name="drawer_nav_break">Break Rules</string>
+    <string name="drawer_nav_category_work">Work Categories</string>
+    <string name="drawer_nav_category_non_work">Other Categories</string>
+    <string name="drawer_nav_note">Note</string>
+    <string name="drawer_nav_report">Reports</string>
+    <string name="drawer_nav_settings">Settings</string>
+    <string name="drawer_nav_sign_out">Sign Out</string>
+
+
+    <!-- Strings related to Settings -->
+
+    <!-- Example General settings -->
+    <string name="pref_header_general">General</string>
+
+    <string name="pref_title_display_name">Display name</string>
+    <string name="pref_default_display_name">John Smith</string>
+
+    <string name="pref_default_category_object_id">Default Category (Work)</string>
+
+    <string name="pref_title_add_friends_to_messages">Add friends to messages</string>
+    <string-array name="pref_example_list_titles">
+        <item>Always</item>
+        <item>When possible</item>
+        <item>Never</item>
+    </string-array>
+    <string-array name="pref_example_list_values">
+        <item>1</item>
+        <item>0</item>
+        <item>-1</item>
+    </string-array>
+
+    <!-- Example settings for Data & Sync -->
+    <string name="pref_header_data_sync">Data &amp; sync</string>
+
+
+    <string name="pref_key_cloud_sync">cloud_sync_switch</string>
+    <string name="pref_title_cloud_sync">Sync to account</string>
+    <string name="pref_description_cloud_sync">Use immediate sync to save all data to
+        cloud account</string>
+
+    <string-array name="list_preference_entries">
+        <item>Entry 1</item>
+        <item>Entry 2</item>
+        <item>Entry 3</item>
+    </string-array>
+
+    <string-array name="list_preference_entry_values">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
+    <string-array name="multi_select_list_preference_default_value" />
+
+    <string name="pref_title_system_sync_settings">System sync settings</string>
+
+    <!-- Settings for CategoryWork -->
+    <string name="pref_header_categories">Categories</string>
+
+    <string name="pref_categories_title_default_category">Default Category</string>
+    <string-array name="pref_categories_default_category_titles">
+        <item>Work</item>
+        <item>Travel (cont)</item>
+        <item>Travel (intercont)</item>
+    </string-array>
+
+    <string-array name="pref_categories_default_category_values">
+        <item>work</item>
+        <item>travel_cont</item>
+        <item>travel_intercont</item>
+    </string-array>
+
+
+    <string name="pref_default_language">Default upload language</string>
+    <string name="pref_default_language_summary">Default language for uploads</string>
+
+    <string name="title_activity_breaks">Breaks</string>
+    <string name="content_breaks_text">
+        "Automatically added breaks\n\n"
+
+        "WLB Timer uses built-in rules to automatically add breaks to work sessions. These rules"
+        "are currently preconfigured and can't be changed.\n\n"
+        "The amount of 15 minutes break time is added for every 2.5 hours of work:\n\n"
+        "- less than 2:30 = 0:00 break time\n"
+        "- from 2:31 to 5:00 = 0:15 break time\n"
+        "- from 5:01 to 7:30 = 0:30 break time\n"
+        "- from 7:31 to 10:00 = 0:45 break time\n"
+        "- more than 10:00 = 1:00 break time\n\n"
+        "This break time value can be changed per session in the detail view.\n\n"
+        "The time is calculated when the STOP button is pressed.\n\n"
+    </string>
+
+    <!-- CategoryNonWork -->
+    <string name="title_activity_category_non_work">Categories (Non Work)</string>
+    <string name="title_activity_category_non_work_add">Add Category (Non Work)</string>
+    <string name="title_activity_category_non_work_update">Update Category (Non Work)</string>
+
+    <string name="update_category_non_work_title_hint">Title</string>
+
+
+    <!-- CategoryWork -->
+    <string name="title_activity_category_work">Categories (Work)</string>
+    <string name="title_activity_category_work_add">Add Category (Work)</string>
+    <string name="title_activity_category_work_update">Update Category (Work)</string>
+
+    <string name="update_category_work_title">Title</string>
+    <string name="update_category_work_factor">1.00</string>
+
+    <string name="color_picker_set_color_button">Set Color</string>
+    <string name="color_picker_show_color_text_view">Category Color</string>
+
+
+    <!-- Note (Demo) -->
+    <string name="title_activity_note">Notes</string>
+    <string name="title_activity_session">Sessions</string>
+
+    <string name="list_item_session_date_dummy">2019–01–31</string>
+    <string name="list_item_session_start_dummy">09:00</string>
+    <string name="list_item_session_end_dummy">17:00</string>
+    <string name="list_item_session_duration_dummy">7:30</string>
+
+
+
+
+</resources>
