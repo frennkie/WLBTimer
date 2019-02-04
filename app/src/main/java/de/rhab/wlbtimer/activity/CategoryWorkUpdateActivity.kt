@@ -16,6 +16,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.larswerkman.holocolorpicker.ColorPicker
 import de.rhab.wlbtimer.R
 import de.rhab.wlbtimer.model.CategoryWork
+import de.rhab.wlbtimer.model.Session
 import de.rhab.wlbtimer.model.WlbUser
 
 
@@ -136,6 +137,12 @@ class CategoryWorkUpdateActivity : AppCompatActivity() {
             val batch = db.batch()
             batch.set(mCategoryWorkRef, mCategoryWork!!)
             batch.update(userRef, "CategoryWork-last", mCategoryWorkRef.id)
+
+            mCategoryWork?.sessions?.forEach { session ->
+                batch.update(userRef.collection(Session.FBP).document(session),
+                        CategoryWork.FBP_SHORT,
+                        mCategoryWork!!.toMapNoSessions())
+            }
 
             batch.commit()
                     .addOnFailureListener { e ->
