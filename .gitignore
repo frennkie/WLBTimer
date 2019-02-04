@@ -26,6 +26,9 @@ build/
 /*/build/
 /build
 
+/debug/*
+/release/*
+
 # Crashlytics configuations
 com_crashlytics_export_strings.xml
 
