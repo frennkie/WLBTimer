@@ -11,27 +11,23 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.*
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.FirebaseFirestore
 import com.larswerkman.holocolorpicker.ColorPicker
 import de.rhab.wlbtimer.R
 import de.rhab.wlbtimer.model.CategoryWork
-import de.rhab.wlbtimer.model.Session
 import de.rhab.wlbtimer.model.WlbUser
 
 
 class CategoryWorkUpdateActivity : AppCompatActivity() {
 
-    private val mDatabaseRef = FirebaseDatabase.getInstance().reference
+    private val db = FirebaseFirestore.getInstance()
 
     private var mAuthListener: FirebaseAuth.AuthStateListener? = null
 
     private val mAuth = FirebaseAuth.getInstance()
 
-    private lateinit var mCategoryWorkRef: DatabaseReference
-    private lateinit var mCategoryWorkListener: ValueEventListener
-    private var mCategoryWorkList = HashMap<String, CategoryWork>()
-
-    private lateinit var mColor: String
+    private lateinit var mCategoryWorkRef: DocumentReference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,43 +45,44 @@ class CategoryWorkUpdateActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        var mKey = intent.getStringExtra("KEY")
-        val mPathStr = intent.getStringExtra("PATH")
+        val mId = intent.getStringExtra("ID")
         val mTitle = intent.getStringExtra("TITLE")
         val mFactor = intent.getStringExtra("FACTOR")
-        mColor = intent.getStringExtra("COLOR") ?: "#A89AAF"
+        var mColor = intent.getStringExtra("COLOR") ?: "#A89AAF"
 
-        Log.d(TAG, "asked to edit CategoryWork with key: $mKey and path: $mPathStr")
-        Log.d(TAG, "asked to edit CategoryWork with factor: $mFactor")
 
-        if (mKey == null) {
+        var mCategoryWork: CategoryWork? = null
+
+        val userRef = db.collection(WlbUser.FBP).document(mAuth.currentUser!!.uid)
+
+        if (mId == null) {
             setTitle(R.string.title_activity_category_work_add)
+            Log.d(TAG, "asked to add new CategoryWork")
+            mCategoryWorkRef = userRef.collection(CategoryWork.FBP).document()
+
         } else {
             setTitle(R.string.title_activity_category_work_update)
-        }
+            Log.d(TAG, "asked to edit CategoryWork with key: $mId")
+            mCategoryWorkRef = userRef.collection(CategoryWork.FBP).document(mId)
 
+            mCategoryWorkRef.get()
+                    .addOnSuccessListener { documentSnapshot ->
+                        if (documentSnapshot != null) {
+                            mCategoryWork = documentSnapshot.toObject(CategoryWork::class.java)
+                            Log.d(TAG, "found: $mCategoryWork")
+                        } else {
+                            Log.w(TAG, "No such document")
+                        }
 
-
-
-        mCategoryWorkRef = mDatabaseRef.child(WlbUser.FBP).child(mAuth.currentUser!!.uid).child(CategoryWork.FBP)
-        mCategoryWorkListener = object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                dataSnapshot.children.forEach { child ->
-                    val mCategoryWork = child.getValue(CategoryWork::class.java)
-                    if (mCategoryWork != null) {
-                        mCategoryWorkList[mCategoryWork.objectId] = mCategoryWork
                     }
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                // Could not successfully listen for data, log the error
-                Log.e(TAG, "category_work:onCancelled: ${error.message}")
-            }
+                    .addOnFailureListener { e ->
+                        Log.d(TAG, "get failed with ", e)
+                    }
         }
 
-
-
+        if (mCategoryWork == null) {
+            mCategoryWork = CategoryWork()
+        }
 
         val editTextTitle = findViewById<EditText>(R.id.category_work_update_title)
         editTextTitle.setText(mTitle)
@@ -115,21 +112,11 @@ class CategoryWorkUpdateActivity : AppCompatActivity() {
         }
 
         val buttonSaveCategoryWork = findViewById<FloatingActionButton>(R.id.button_save)
-        buttonSaveCategoryWork.setOnClickListener {
+        buttonSaveCategoryWork.setOnClickListener { _ ->
 
-            Log.d(TAG, "foo")
-
-            if (mKey == null) {
+            if (mId == null) {
                 Log.d(TAG, "add CategoryWork")
                 Toast.makeText(this, "Adding...", Toast.LENGTH_SHORT).show()
-
-                mKey = mDatabaseRef.child(WlbUser.FBP)
-                    .child(mAuth.currentUser!!.uid)
-                    .child(CategoryWork.FBP).push().key
-                if (mKey == null) {
-                    Log.w(TAG, "Couldn't get push key")
-                }
-
             } else {
                 Log.d(TAG, "update CategoryWork")
                 Toast.makeText(this, "Updating...", Toast.LENGTH_SHORT).show()
@@ -141,57 +128,37 @@ class CategoryWorkUpdateActivity : AppCompatActivity() {
                 editTextFactor.text.toString().toDouble()
             }
 
-            val childUpdates = HashMap<String, Any>()
+            mCategoryWork!!.objectId = mCategoryWorkRef.id
+            mCategoryWork!!.title = editTextTitle.text.toString()
+            mCategoryWork!!.color = mColor
+            mCategoryWork!!.factor = mNewFactor
 
-            // ToDo(frennkie) writing a new object here will delete the sessions data
-            val mCategoryWork: CategoryWork
-            if (mCategoryWorkList[mKey] != null) {
-                // update to existing CategoryWork
-                mCategoryWork = mCategoryWorkList[mKey]!!
-                mCategoryWork.title = editTextTitle.text.toString()
-                mCategoryWork.color = mColor
-                mCategoryWork.factor = mNewFactor
+            val batch = db.batch()
+            batch.set(mCategoryWorkRef, mCategoryWork!!)
+            batch.update(userRef, "CategoryWork-last", mCategoryWorkRef.id)
 
-                // also push changes to all sessions
-                // ToDo - first check whether that session exists..?! to avoid ghost sessions?!
-                mCategoryWork.sessions.forEach {
-                    val pathX = mDatabaseRef.child(Session.FBP).child(mAuth.currentUser!!.uid)
-                            .child(it.key).child(CategoryWork.FBP_SHORT).path.toString()
-                    childUpdates[pathX] = mCategoryWork.toMapNoSessions()
-                }
+            batch.commit()
+                    .addOnFailureListener { e ->
+                        Log.w(TAG, "Failed to start new session! Error: ", e)
+                        // this catches the error.. may be do something with this?! UI does reflect the
+                        // intended change until refresh!
+                    }
+                    .addOnSuccessListener { _ ->
+                        Log.d(TAG, "success!")
+                    }
 
-            } else {
-                // new CategoryWork
-                mCategoryWork = CategoryWork(
-                        objectId = mKey,
-                        title = editTextTitle.text.toString(),
-                        color = mColor,
-                        factor = mNewFactor
-                )
-            }
-
-
-            val pathA = mDatabaseRef.child(WlbUser.FBP).child(mAuth.currentUser!!.uid)
-                    .child(CategoryWork.FBP).child(mKey).path.toString()
-            childUpdates[pathA] = mCategoryWork.toMap()
-
-            mDatabaseRef.updateChildren(childUpdates)
-
+            // finish activity after save and return to list
             finish()
-
         }
-
     }
 
     public override fun onStart() {
         super.onStart()
-        mCategoryWorkRef.addValueEventListener(mCategoryWorkListener)
         mAuth.addAuthStateListener(mAuthListener!!)
     }
 
     public override fun onStop() {
         super.onStop()
-        mCategoryWorkRef.removeEventListener(mCategoryWorkListener)
         if (mAuthListener != null) {
             mAuth.removeAuthStateListener(mAuthListener!!)
         }

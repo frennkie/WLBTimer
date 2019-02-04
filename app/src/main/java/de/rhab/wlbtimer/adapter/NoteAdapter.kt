@@ -48,7 +48,7 @@ class NoteAdapter(options: FirestoreRecyclerOptions<Note>) : FirestoreRecyclerAd
     }
 
     fun deleteItem(position: Int) {
-        // ToDo(frennkie) deleting does not delete subcollections! Check it
+        // ToDo(frennkie) deleting does not delete sub collections! Check it
         snapshots.getSnapshot(position).reference.delete()
                 .addOnSuccessListener { Log.d(TAG, "DocumentSnapshot successfully deleted!") }
                 .addOnFailureListener { e -> Log.w(TAG, "Error deleting document", e) }

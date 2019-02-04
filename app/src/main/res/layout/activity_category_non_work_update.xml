@@ -7,6 +7,7 @@
     tools:context=".activity.CategoryNonWorkUpdateActivity">
 
     <android.support.design.widget.AppBarLayout
+        android:id="@+id/app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
@@ -20,18 +21,20 @@
     </android.support.design.widget.AppBarLayout>
 
     <LinearLayout
+        android:id="@+id/linear_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" >
 
         <EditText
-            android:id="@+id/update_title"
-            android:layout_width="match_parent"
+            android:id="@+id/category_non_work_update_title"
+            android:layout_width="276dp"
             android:layout_height="wrap_content"
             android:hint="@string/update_category_non_work_title_hint"
             android:importantForAutofill="no"
             android:inputType="text"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
             tools:targetApi="o" />
 
         <com.larswerkman.holocolorpicker.ColorPicker
@@ -58,16 +61,17 @@
             android:textSize="14sp"
             android:visibility="invisible" />
 
-
     </LinearLayout>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/button_save"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
-        android:src="@drawable/ic_save_white_24dp" />
+        android:src="@drawable/ic_save_white_24dp"
+        android:visibility="visible"
+        app:layout_anchor="@id/linear_layout"
+        app:layout_anchorGravity="top|right|end"/>
 
 </android.support.design.widget.CoordinatorLayout>
 

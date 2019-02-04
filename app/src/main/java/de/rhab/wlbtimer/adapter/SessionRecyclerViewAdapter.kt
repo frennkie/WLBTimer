@@ -10,7 +10,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import de.rhab.wlbtimer.R
 import de.rhab.wlbtimer.fragment.HomeFragment
-import de.rhab.wlbtimer.fragment.SessionBottomDialogFragment
+import de.rhab.wlbtimer.fragment.SessionBottomSheetFragment
 import de.rhab.wlbtimer.model.Session
 
 
@@ -25,7 +25,7 @@ class SessionRecyclerViewAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
-                .inflate(R.layout.item_session, parent, false)
+                .inflate(R.layout.item_session_fragment, parent, false)
         return ViewHolder(view)
     }
 
@@ -77,10 +77,10 @@ class SessionRecyclerViewAdapter(
 
         holder.mView.setOnClickListener { v ->
             val activity = v.context as AppCompatActivity
-            val sessionBottomDialogFragment = SessionBottomDialogFragment.newInstance()
+            val sessionBottomDialogFragment = SessionBottomSheetFragment.newInstance()
 
             val bundle = Bundle()
-            bundle.putString(SessionBottomDialogFragment.ARG_SESSION_ID, holder.mItem!!.objectId)
+            bundle.putString(SessionBottomSheetFragment.ARG_SESSION_ID, holder.mItem!!.objectId)
             sessionBottomDialogFragment.arguments = bundle
 
             sessionBottomDialogFragment.show(activity.supportFragmentManager, "session_dialog_fragment")

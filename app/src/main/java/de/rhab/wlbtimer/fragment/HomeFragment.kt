@@ -8,24 +8,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.*
 import com.jakewharton.threetenabp.AndroidThreeTen
-import de.rhab.wlbtimer.R
-import de.rhab.wlbtimer.adapter.SessionRecyclerViewAdapter
 import de.rhab.wlbtimer.model.Session
 import android.support.v7.widget.LinearLayoutManager
+import com.google.firebase.firestore.*
+import de.rhab.wlbtimer.R
+import de.rhab.wlbtimer.model.WlbUser
 
 
 class HomeFragment : Fragment() {
 
-    private var mListener: OnListFragmentInteractionListener? = null
-
     private val mAuth = FirebaseAuth.getInstance()
 
-    private var databaseReference: DatabaseReference? = null
-    private var mSessionsRef: DatabaseReference? = null
+    private val db = FirebaseFirestore.getInstance()
 
-    private var mSessionListener: ValueEventListener? = null
+    private var mSessionListener: ListenerRegistration? = null
 
     private var mRecyclerView: RecyclerView? = null
     private var mAdapter: RecyclerView.Adapter<*>? = null
@@ -55,52 +52,27 @@ class HomeFragment : Fragment() {
         return rootView
     }
 
-
     private fun basicListen() {
-        // Get a reference to the Firebase Database
-        databaseReference = FirebaseDatabase.getInstance().reference
-        mSessionsRef = databaseReference!!.child(Session.FBP).child(mAuth.currentUser!!.uid)
-        mSessionListener = object : ValueEventListener {
-
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                // New data at this path. This method will be called after every change in the
-                // data at this path or a subpath.
-
-                mSessions.clear()
-
-                // Get the data as Session objects
-                Log.d(TAG, "Number of sessions: " + dataSnapshot.childrenCount)
-
-                for (child in dataSnapshot.children) {
-                    // Extract a Message object from the DataSnapshot
-                    Log.d(TAG, child.key)
-                    val session = child.getValue<Session>(Session::class.java)
-                    if (session != null) {
-                        mSessions.add(session)
+        mSessionListener = db.collection(WlbUser.FBP)
+                .document(mAuth.currentUser!!.uid)
+                .collection(Session.FBP)
+                .addSnapshotListener(EventListener<QuerySnapshot> { value, e ->
+                    if (e != null) {
+                        Log.w(TAG, "monitorSessionRunning Listen failed.", e)
+                        return@EventListener
                     }
 
-                    // Use the Session
-                    // [START_EXCLUDE]
-                    Log.d(TAG, "session start:" + session!!.tsStart + "session end:" + session.tsEnd)
-                    // [END_EXCLUDE]
-                }
+                    mSessions.clear()
 
-                mAdapter = SessionRecyclerViewAdapter(mSessions, mListener)
-                mRecyclerView?.adapter = mAdapter
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                // Could not successfully listen for data, log the error
-                Log.e(TAG, "sessions:onCancelled:" + error.message)
-            }
-        }
-        // order by Start
-        mSessionsRef!!.orderByChild("tsStartForward").addValueEventListener(mSessionListener!!)
+                    for (doc in value!!) {
+                        mSessions.add(doc.toObject(Session::class.java))
+                    }
+                })
     }
 
     private fun cleanBasicListener() {
         // Clean up value listener
-        mSessionsRef!!.removeEventListener(mSessionListener!!)
+        mSessionListener?.remove()
     }
 
 
@@ -123,10 +95,8 @@ class HomeFragment : Fragment() {
         if (mAuth.currentUser != null) {
             Log.d(TAG, "Home:onStop:is_signed_in:")
             cleanBasicListener()
-        } else {
-            Log.d(TAG, "Home:onStop:is_signed_out")
-        }
 
+        }
     }
 
 

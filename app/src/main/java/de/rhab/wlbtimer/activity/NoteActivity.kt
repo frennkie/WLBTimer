@@ -11,7 +11,6 @@ import android.util.Log
 import android.widget.Toast
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -28,8 +27,6 @@ class NoteActivity : AppCompatActivity() {
     private val mAuth = FirebaseAuth.getInstance()
 
     private lateinit var mAdapter: NoteAdapter
-
-    private val mDatabaseRef = FirebaseDatabase.getInstance().reference
 
     private val db = FirebaseFirestore.getInstance()
 
@@ -61,9 +58,9 @@ class NoteActivity : AppCompatActivity() {
     }
 
     private fun setUpRecyclerView() {
-        val query = db.collection("users")
+        val query = db.collection(WlbUser.FBP)
                 .document(mAuth.currentUser!!.uid)
-                .collection("notes")
+                .collection(Note.FBP)
                 .orderBy("priority", Query.Direction.DESCENDING)
         // .whereArrayContains("tags", "ccc")
 
@@ -73,7 +70,7 @@ class NoteActivity : AppCompatActivity() {
 
         mAdapter = NoteAdapter(options)
 
-        val recyclerView = findViewById<RecyclerView>(R.id.recycler_view)
+        val recyclerView = findViewById<RecyclerView>(R.id.note_recycler_view)
         recyclerView.setHasFixedSize(true)
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = mAdapter
@@ -99,7 +96,6 @@ class NoteActivity : AppCompatActivity() {
             }
         })
 
-
     }
 
     public override fun onStart() {
@@ -116,53 +112,30 @@ class NoteActivity : AppCompatActivity() {
         }
     }
 
-
     private fun addNote() {
-
         Toast.makeText(this, "Posting...", Toast.LENGTH_SHORT).show()
         writeNewNote("Title123", "Description123", 123)
 
     }
 
     private fun writeNewNote(title: String, description: String, priority: Int) {
-        // Create new Note at /users/$userid/$noteid and
-        // post key at /users/$userid/note-last and
-        // post key at /users/$userid/note-default simultaneously
-        val key = mDatabaseRef.child(WlbUser.FBP)
-                .child(mAuth.currentUser!!.uid)
-                .child("note").push().key
+        // Create new Note at /users/$userid/notes/$noteid and
+        // post key at /users/$userid/note-last
 
-        if (key == null) {
-            Log.w(TAG, "Couldn't get push key for posts")
-            return
-        }
+        val userRef = db.collection(WlbUser.FBP).document(mAuth.currentUser!!.uid)
+
+        val batch = db.batch()
 
         val note = Note(title, description, priority)
-        val noteValues = note.toMap()
+        val noteRef = userRef.collection(Note.FBP).document()
+        batch.set(noteRef, note)
 
-        val childUpdates = HashMap<String, Any>()
-        childUpdates["/users/${mAuth.currentUser!!.uid}/note/$key"] = noteValues
-        childUpdates["/users/${mAuth.currentUser!!.uid}/note-last"] = key
-//        childUpdates["/users/${mAuth.currentUser!!.uid}/note-default"] = key
+        batch.update(userRef, "Note-last", noteRef.id)
 
-        mDatabaseRef.updateChildren(childUpdates)
-
-
-        // duplicate to Firestore
-        Log.w(TAG, "duplicating Data to Firestore")
-        db.collection("users")
-                .document(mAuth.currentUser!!.uid)
-                .collection("notes")
-                .add(note)
-                .addOnSuccessListener { documentReference ->
-                    Log.d(TAG, "DocumentSnapshot written with ID: " + documentReference.id)
-                }
-                .addOnFailureListener { e ->
-                    Log.w(TAG, "Error adding document", e)
-                }
+        batch.commit().addOnSuccessListener { _ -> Log.d(TAG, "Successfully batch committed something") }
+                .addOnFailureListener { e -> Log.w(TAG, "Error running batch commit", e) }
 
     }
-
 
     companion object {
 

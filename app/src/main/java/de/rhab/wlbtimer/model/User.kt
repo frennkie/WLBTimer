@@ -1,7 +1,7 @@
 package de.rhab.wlbtimer.model
 
-import com.google.firebase.database.Exclude
-import com.google.firebase.database.IgnoreExtraProperties
+import com.google.firebase.firestore.Exclude
+import com.google.firebase.firestore.IgnoreExtraProperties
 
 @IgnoreExtraProperties
 data class WlbUser(

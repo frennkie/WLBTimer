@@ -12,6 +12,9 @@ import de.rhab.wlbtimer.BuildConfig
 import java.util.*
 import com.firebase.ui.auth.ErrorCodes
 import com.firebase.ui.auth.IdpResponse
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import de.rhab.wlbtimer.model.WlbUser
 
 
 class SignInActivity : AppCompatActivity() {
@@ -19,6 +22,8 @@ class SignInActivity : AppCompatActivity() {
     private var mAuthListener: FirebaseAuth.AuthStateListener? = null
 
     private val mAuth = FirebaseAuth.getInstance()
+
+    private val db = FirebaseFirestore.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,8 +33,10 @@ class SignInActivity : AppCompatActivity() {
             if (auth.currentUser != null) {
                 Log.d(TAG, "onAuthStateChanged: status=signed_in:" + mAuth.currentUser!!.uid)
 
+                Log.d(TAG, "store successful sign-in to Firestore")
+                storeSuccessfulSignIn(mAuth.currentUser!!.uid)
+
                 val intent = Intent(applicationContext, MainActivity::class.java)
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
                 startActivity(intent)
                 finish() // call this to finish the current activity
 
@@ -66,9 +73,8 @@ class SignInActivity : AppCompatActivity() {
 
                 Log.d(TAG, "Snack: sign_in_ok - starting MainActivity")
                 val intent = Intent(applicationContext, MainActivity::class.java)
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
                 startActivity(intent)
-                finish() // call this to finish the current activity
+                finishAffinity()
 
             } else {
                 // Sign in failed
@@ -92,6 +98,12 @@ class SignInActivity : AppCompatActivity() {
         }
     }
 
+    private fun storeSuccessfulSignIn(uid: String) {
+        val userRef = db.collection(WlbUser.FBP).document(uid)
+        val data = HashMap<String, Any>()
+        data["last-sign-in"] = FieldValue.serverTimestamp()
+        userRef.set(data)
+    }
 
     public override fun onStart() {
         super.onStart()

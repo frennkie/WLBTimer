@@ -7,14 +7,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import com.firebase.ui.database.FirebaseRecyclerAdapter
-import com.firebase.ui.database.FirebaseRecyclerOptions
-import com.google.firebase.database.DataSnapshot
+import com.firebase.ui.firestore.FirestoreRecyclerAdapter
+import com.firebase.ui.firestore.FirestoreRecyclerOptions
+import com.google.firebase.firestore.DocumentSnapshot
 import de.rhab.wlbtimer.R
 import de.rhab.wlbtimer.model.CategoryNonWork
 
 
-class CategoryNonWorkAdapter(options: FirebaseRecyclerOptions<CategoryNonWork>) : FirebaseRecyclerAdapter<CategoryNonWork, CategoryNonWorkAdapter.CategoryNonWorkHolder>(options) {
+class CategoryNonWorkAdapter(options: FirestoreRecyclerOptions<CategoryNonWork>) :
+        FirestoreRecyclerAdapter<CategoryNonWork, CategoryNonWorkAdapter.CategoryNonWorkHolder>(options) {
 
     var listener: OnItemClickListener? = null
 
@@ -31,13 +32,10 @@ class CategoryNonWorkAdapter(options: FirebaseRecyclerOptions<CategoryNonWork>) 
     }
 
     fun deleteItem(position: Int) {
-        Log.d(TAG, "going to delete CategoryNonWork with title: ${snapshots[position].title}")
-        snapshots.getSnapshot(position).ref.removeValue { databaseError, databaseReference ->
-            if (databaseError != null) {
-                Log.e(TAG, "failed to delete pos: $position at ref: $databaseReference " +
-                        "with error: $databaseError!")
-            }
-        }
+        // ToDo(frennkie) deleting does not delete sub collections! Check it
+        snapshots.getSnapshot(position).reference.delete()
+                .addOnSuccessListener { Log.d(TAG, "DocumentSnapshot successfully deleted!") }
+                .addOnFailureListener { e -> Log.w(TAG, "Error deleting document", e) }
     }
 
     inner class CategoryNonWorkHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -55,7 +53,7 @@ class CategoryNonWorkAdapter(options: FirebaseRecyclerOptions<CategoryNonWork>) 
     }
 
     interface OnItemClickListener {
-        fun onItemClick(dataSnapshot: DataSnapshot, position: Int)
+        fun onItemClick(documentSnapshot: DocumentSnapshot, position: Int)
     }
 
     fun setOnItemClickListener(listener: OnItemClickListener) {

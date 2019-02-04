@@ -12,15 +12,10 @@ import android.widget.Button
 import android.widget.TextView
 import com.crashlytics.android.Crashlytics
 import com.google.firebase.auth.FirebaseAuth
-import de.rhab.wlbtimer.model.CategoryWork
-import io.fabric.sdk.android.Fabric
-import android.widget.ArrayAdapter
-import android.widget.Spinner
-import com.google.firebase.database.*
+import com.google.firebase.firestore.FirebaseFirestore
 import de.rhab.wlbtimer.BuildConfig
-import de.rhab.wlbtimer.FirebaseHandler
 import de.rhab.wlbtimer.R
-import de.rhab.wlbtimer.model.Session
+import io.fabric.sdk.android.Fabric
 
 
 class ReportActivity : AppCompatActivity() {
@@ -29,7 +24,7 @@ class ReportActivity : AppCompatActivity() {
 
     private val mAuth = FirebaseAuth.getInstance()
 
-    private val mDatabaseRef = FirebaseDatabase.getInstance().reference
+    private val db = FirebaseFirestore.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,12 +43,6 @@ class ReportActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 //        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-
-        // ToDo(frennkie) Adds tracking - check this
-        if (mAuth.currentUser != null) {
-            FirebaseHandler.lastOnlineTracking(mAuth.currentUser!!)
-        }
-
         val strtext = intent.getStringExtra(INTENT_EXTRA_MESSAGE)
 
         val greetingTextView = findViewById<View>(R.id.greetingTextView) as TextView
@@ -68,28 +57,31 @@ class ReportActivity : AppCompatActivity() {
         val userTextView = findViewById<View>(R.id.userTextView) as TextView
         userTextView.text = mAuth.currentUser!!.uid
 
+        val mMetadataPublicRef = db.collection("metadata").document("public")
+
         // show backend version and update button
         val backendVerTextView = findViewById<TextView>(R.id.backendVerTextView)
         val backendVerBtn = findViewById<Button>(R.id.backendVerBtn)
         backendVerBtn.setOnClickListener {
-            // Write a message to the mDatabaseRef
-            val myInBtnRef = mDatabaseRef.child("info").child("version")
 
-            // Read from the mDatabaseRef - ToDo(frennkie) I think I should remove this in onStop()
-            myInBtnRef.addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    // This method is called once with the initial value and again
-                    // whenever data at this location is updated.
-                    val value = dataSnapshot.getValue(String::class.java)
-                    backendVerTextView.text = value
-                    Log.d(TAG, "Value is: " + value!!)
-                }
+            mMetadataPublicRef.get()
+                    .addOnFailureListener { e ->
+                        Log.d(TAG, "get failed with ", e)
+                    }
+                    .addOnSuccessListener { documentSnapshot ->
+                        if (documentSnapshot != null) {
+                            if (documentSnapshot.contains("version")) {
+                                val mVersion = documentSnapshot.get("version").toString()
+                                backendVerTextView.text = mVersion
+                                Log.d(TAG, "Value is: $mVersion")
+                            }
+                            if (documentSnapshot.contains("version")) {
+                                val mMinClientVer = documentSnapshot.get("min_supported_client_version").toString()
+                                Log.d(TAG, "Min Supported Client Version is: $mMinClientVer")
+                            }
 
-                override fun onCancelled(error: DatabaseError) {
-                    // Failed to read value
-                    Log.w(TAG, "Failed to read value.", error.toException())
-                }
-            })
+                        }
+                    }
         }
 
         val tvClientVersion = findViewById<TextView>(R.id.tv_client_version)

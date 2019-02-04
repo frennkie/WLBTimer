@@ -3,6 +3,8 @@ package de.rhab.wlbtimer.fragment
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.support.design.widget.BottomSheetDialogFragment
 import android.support.v7.app.AlertDialog
@@ -10,9 +12,15 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.ListPopupWindow
+import android.widget.SimpleAdapter
+import android.widget.TextView
+import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.*
+import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
 import de.rhab.wlbtimer.R
 import de.rhab.wlbtimer.model.Break
 import de.rhab.wlbtimer.model.CategoryWork
@@ -21,21 +29,20 @@ import de.rhab.wlbtimer.model.WlbUser
 import org.threeten.bp.ZonedDateTime
 
 
-class SessionBottomDialogFragment : BottomSheetDialogFragment() {
+class SessionBottomSheetFragment : BottomSheetDialogFragment() {
 
     private val mAuth = FirebaseAuth.getInstance()
 
-    private val mDatabaseRef = FirebaseDatabase.getInstance().reference
+    private val db = FirebaseFirestore.getInstance()
 
-    private lateinit var mCategoryWorkRef: DatabaseReference
-    private lateinit var mSessionRef: DatabaseReference
+    private lateinit var mCategoryWorkColRef: CollectionReference
 
-    private lateinit var mCategoryWorkListener: ValueEventListener
-    private lateinit var mSessionListener: ValueEventListener
+    private lateinit var mSessionRef: DocumentReference
 
     private var mCategoryWorkList = HashMap<String, CategoryWork>()
 
     private lateinit var numberList: ListPopupWindow
+
     private var listCategoryWork = ArrayList<Map<String, String>>()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -48,41 +55,49 @@ class SessionBottomDialogFragment : BottomSheetDialogFragment() {
         val tvBreaks = rootView.findViewById<TextView>(R.id.tv_btn_breaks)
         val tvDuration = rootView.findViewById<TextView>(R.id.tv_btn_duration)
         val tvCategory = rootView.findViewById<TextView>(R.id.tv_btn_category)
+
+        val tvCategoryIcon = rootView.findViewById<TextView>(R.id.tv_category_icon)
+        val mTvCategoryIconBackground = tvCategoryIcon.background as GradientDrawable
+
         val tvRemoveSession = rootView.findViewById<TextView>(R.id.tv_btn_remove_session)
 
         // Variable to hold existing or new Session Object
         var mSession: Session? = null
 
+
+        val userRef = db.collection(WlbUser.FBP).document(mAuth.currentUser!!.uid)
         // get passed in Session ID
-        val sessionId = arguments?.getString(ARG_SESSION_ID)
+        val mId = arguments?.getString(ARG_SESSION_ID)
 
-        if (sessionId != null) {
-            Log.d(TAG, "using existing session")
-            mSessionRef = mDatabaseRef.child(Session.FBP).child(mAuth.currentUser!!.uid).child(sessionId)
-
-        } else {
+        if (mId == null) {
             Log.i(TAG, "adding new session")
+            mSessionRef = userRef.collection(Session.FBP).document()
 
-            mSession = Session(allDay = false, finished = true)
-            // We first make a push so that a new item is made with a unique ID
-            mSessionRef = mDatabaseRef.child(Session.FBP).child(mAuth.currentUser!!.uid).push()
-            mSession.objectId = mSessionRef.key
+            mSession = Session()
+            mSession.objectId = mSessionRef.id
+            mSession.allDay = false
+            mSession.finished = true
             mSession.tsStart = Session.getZonedDateTimeNow().minusHours(8).toString()
             mSession.tsEnd = Session.getZonedDateTimeNow().toString()
 
-            // ToDo(frennkie) how to get full details from CategoryWork here?! :-/
-//            val sharedPref = PreferenceManager.getDefaultSharedPreferences(this.context)
-//            val defaultCategoryWork = sharedPref.getString("default_category_work", null)
-//            if (defaultCategoryWork != null) {
-//                Log.d(TAG, "setting default category work from prefs")
-//                mSession.category = CategoryWork(defaultCategoryWork)
-//            }
-
             /* ToDO(frennkie) makes no sense.. would at least need to check for length of session
-            as a 60min session won't have a 45min break.. Also this is most likely not the
-            right place for this logic
+                as a 60min session won't have a 45min break.. Also this is most likely not the
+                right place for this logic
+
+                how to get full details from CategoryWork here?! :-/
+                val sharedPref = PreferenceManager.getDefaultSharedPreferences(this.context)
+                val defaultCategoryWork = sharedPref.getString("default_category_work", null)
+                if (defaultCategoryWork != null) {
+                    Log.d(TAG, "setting default category work from prefs")
+                    mSession.category = CategoryWork(defaultCategoryWork)
+                }
             */
-            val mDefaultBreak = Break(comment = "Default Break", duration = 60 * 45)
+
+            val mDefaultBreak = Break(
+                    comment = "Default Break",
+                    duration = 60 * 45
+            )
+
             if (mSession.breaks != null) {
                 Log.d(TAG, "breaks present - adding default")
                 mSession.breaks!!.add(mDefaultBreak)
@@ -91,100 +106,103 @@ class SessionBottomDialogFragment : BottomSheetDialogFragment() {
                 mSession.breaks = mutableListOf(mDefaultBreak)
             }
 
-            // then, we use the reference to set the value on that ID
-            mSessionRef.setValue(mSession.toMap())
+            // write this to Firestore
+            mSessionRef.set(mSession.toMap())
 
+        } else {
+            Log.d(TAG, "using existing session for mId: $mId")
+            mSessionRef = userRef.collection(Session.FBP).document(mId)
         }
 
-        mCategoryWorkRef = mDatabaseRef.child(WlbUser.FBP).child(mAuth.currentUser!!.uid).child(CategoryWork.FBP)
-        mCategoryWorkListener = object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                Log.d(TAG, "Number of category_work entries: ${dataSnapshot.childrenCount}")
+        Log.d(TAG, "mSessionRef is now: ${mSessionRef.path}")
 
-                listCategoryWork = ArrayList()
 
-                dataSnapshot.children.forEach { child ->
-                    // Extract Message object from the DataSnapshot
-                    Log.d(TAG, child.toString())
-                    val mCategoryWork = child.getValue(CategoryWork::class.java)
-                    if (mCategoryWork != null) {
+        listCategoryWork = ArrayList()
+
+        // get Category Work Object
+        mCategoryWorkColRef = userRef.collection(CategoryWork.FBP)
+        mCategoryWorkColRef.get()
+                .addOnSuccessListener { result ->
+                    Log.d(TAG, "Number of category_work entries: ${result.count()}")
+
+                    for (document in result) {
+                        Log.d(TAG, document.id + " => " + document.data)
+                        val mCategoryWork = document.toObject(CategoryWork::class.java)
+
                         mCategoryWorkList[mCategoryWork.objectId] = mCategoryWork
 
                         val tran = LinkedHashMap<String, String>()
                         tran["title"] = mCategoryWork.title
                         tran["objectId"] = mCategoryWork.objectId
                         listCategoryWork.add(tran)
+
+                    }
+
+                    Log.d(TAG, "listCategoryWork: $listCategoryWork")
+
+                }
+                .addOnFailureListener { e ->
+                    Log.d(TAG, "get failed with ", e)
+                }
+
+        // get Session Object
+        mSessionRef.get()
+                .addOnSuccessListener { documentSnapshot ->
+                    if (documentSnapshot != null) {
+                        mSession = documentSnapshot.toObject(Session::class.java)
+                        Log.d(TAG, "found: $mSession")
+                    } else {
+                        Log.w(TAG, "No such document")
+                    }
+
+                    Log.d(TAG, "foobar3: ${mSession?.toMap()}")
+                    if (mSession != null) {
+
+                        if (mSession!!.tsStart != null) {
+                            tvStartDate.text = mSession!!.getDateStart()
+                            tvStartTime.text = mSession!!.getTimeZonedStart()
+                        } else {
+                            tvStartDate.text = "..."
+                            tvStartTime.text = "..."
+                        }
+
+                        if (mSession!!.tsEnd != null) {
+                            tvEndDate.text = mSession!!.getDateEnd()
+                            tvEndTime.text = mSession!!.getTimeZonedEnd()
+                        } else {
+                            tvEndDate.text = "..."
+                            tvEndTime.text = "..."
+                        }
+
+                        tvBreaks.text = mSession!!.getTotalBreakTime()
+
+                        val mCategoryWork = mSession!!.category
+                        Log.d(TAG, "result $mCategoryWork")
+                        if (mCategoryWork != null) {
+                            tvCategory.text = mCategoryWork.title
+
+                           tvCategoryIcon.text = mCategoryWork.title.substring(0, 1)
+                            val mColor = Color.parseColor(mCategoryWork.color)
+                            mTvCategoryIconBackground.setColor(mColor)
+
+                            tvDuration.text = mSession!!.getDurationWeightedExcludingBreaks(mFactor = mCategoryWork.factor)
+                        } else {
+                            tvCategory.text = "N/A"
+
+                            tvCategoryIcon.text = "-"
+                            val mColor = Color.parseColor("#666666")
+                            mTvCategoryIconBackground.setColor(mColor)
+
+                            tvDuration.text = mSession!!.getDurationWeightedExcludingBreaks()
+                        }
+
                     }
 
                 }
-
-                Log.d(TAG, "listCategoryWork: $listCategoryWork")
-
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                // Could not successfully listen for data, log the error
-                Log.e(TAG, "category_work:onCancelled: ${error.message}")
-            }
-        }
-
-        mSessionListener = object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                Log.d(TAG, "foobar1: ${mSession?.toMap()}")
-                Log.d(TAG, "foobar2: $dataSnapshot")
-
-                mSession = dataSnapshot.getValue(Session::class.java)
-
-                dataSnapshot.children.forEach { child ->
-                    // Extract Message object from the DataSnapshot
-                    Log.d(TAG, child.toString())
-                    if (child.key == CategoryWork.FBP_SHORT) {
-                        Log.d(TAG, "found cat work")
-
-                        mSession!!.category = child.getValue(CategoryWork::class.java)
-                    }
+                .addOnFailureListener { e ->
+                    Log.d(TAG, "get failed with ", e)
                 }
 
-                // ToDo foobar3 already lost an existing category!!
-                Log.d(TAG, "foobar3: ${mSession?.toMap()}")
-                if (mSession != null) {
-
-                    if (mSession!!.tsStart != null) {
-                        tvStartDate.text = mSession!!.getDateStart()
-                        tvStartTime.text = mSession!!.getTimeZonedStart()
-                    } else {
-                        tvStartDate.text = "..."
-                        tvStartTime.text = "..."
-                    }
-
-                    if (mSession!!.tsEnd != null) {
-                        tvEndDate.text = mSession!!.getDateEnd()
-                        tvEndTime.text = mSession!!.getTimeZonedEnd()
-                    } else {
-                        tvEndDate.text = "..."
-                        tvEndTime.text = "..."
-                    }
-
-                    tvBreaks.text = mSession!!.getTotalBreakTime()
-
-                    val mCategoryWork = mSession!!.category
-                    Log.d(TAG, "result $mCategoryWork")
-                    if (mCategoryWork != null) {
-                        tvCategory.text = mCategoryWork.title
-                        tvDuration.text = mSession!!.getDurationWeightedExcludingBreaks(mFactor = mCategoryWork.factor)
-                    } else {
-                        tvCategory.text = "N/A"
-                        tvDuration.text = mSession!!.getDurationWeightedExcludingBreaks()
-                    }
-
-                }
-
-            }
-
-            override fun onCancelled(databaseError: DatabaseError) {
-                Log.e(TAG, "SessionBottomDialogFragment Cancel: ${databaseError.toException()}")
-            }
-        }
 
         //handle clicks
         tvStartDate.setOnClickListener {
@@ -197,7 +215,7 @@ class SessionBottomDialogFragment : BottomSheetDialogFragment() {
                 val newStartDateTime: ZonedDateTime = startDateTime.withYear(year).withMonth(month + 1).withDayOfMonth(day)
                 // update db
                 mSession!!.tsStart = newStartDateTime.toString()
-                mSessionRef.setValue(mSession!!.toMap())
+                mSessionRef.set(mSession!!.toMap())
                 // update TextView on Bottom Dialog
                 tvStartDate.text = Session.toDateStr(newStartDateTime)
             }
@@ -216,7 +234,7 @@ class SessionBottomDialogFragment : BottomSheetDialogFragment() {
                 val newStartDateTime: ZonedDateTime = startDateTime.withHour(hour).withMinute(minute).withSecond(0)
                 // update db
                 mSession!!.tsStart = newStartDateTime.toString()
-                mSessionRef.setValue(mSession!!.toMap())
+                mSessionRef.set(mSession!!.toMap())
                 // update TextView on Bottom Dialog
                 tvStartTime.text = Session.toTimeZonedStr(newStartDateTime)
             }
@@ -229,14 +247,14 @@ class SessionBottomDialogFragment : BottomSheetDialogFragment() {
             Log.d(TAG, "tvEndDate clicked...")
 
             // only allow editing if session is finished
-            if (mSession!!.finished!!) {
+            if (mSession!!.finished) {
                 val endDateTime: ZonedDateTime = Session.fromDefaultStr(mSession!!.tsEnd!!)!!
 
                 val dateSetListener = DatePickerDialog.OnDateSetListener { _, year, month, day ->
                     val newEndDateTime: ZonedDateTime = endDateTime.withYear(year).withMonth(month + 1).withDayOfMonth(day)
                     // update db
                     mSession!!.tsEnd = newEndDateTime.toString()
-                    mSessionRef.setValue(mSession!!.toMap())
+                    mSessionRef.set(mSession!!.toMap())
                     // update TextView on Bottom Dialog
                     tvEndDate.text = Session.toDateStr(newEndDateTime)
                 }
@@ -251,14 +269,14 @@ class SessionBottomDialogFragment : BottomSheetDialogFragment() {
             Log.d(TAG, "tvEndTime clicked...")
 
             // only allow editing if session is finished
-            if (mSession!!.finished!!) {
+            if (mSession!!.finished) {
                 val endDateTime: ZonedDateTime = Session.fromDefaultStr(mSession!!.tsEnd!!)!!
 
                 val timeSetListener = TimePickerDialog.OnTimeSetListener { _, hour, minute ->
                     val newEndDateTime: ZonedDateTime = endDateTime.withHour(hour).withMinute(minute).withSecond(0)
                     // update db
                     mSession!!.tsEnd = newEndDateTime.toString()
-                    mSessionRef.setValue(mSession!!.toMap())
+                    mSessionRef.set(mSession!!.toMap())
                     // update TextView on Bottom Dialog
                     tvEndTime.text = Session.toTimeZonedStr(newEndDateTime)
                 }
@@ -285,11 +303,14 @@ class SessionBottomDialogFragment : BottomSheetDialogFragment() {
 
             if (mBreak != null) {
                 val timeSetListener = TimePickerDialog.OnTimeSetListener { _, hour, minute ->
-                    // update db
-                    mBreak.duration = hour * 60 * 60 + minute * 60
-                    mSessionRef.child("breaks").child("0").setValue(mBreak.toMap())
-                    // update TextView on Bottom Dialog
                     Log.d(TAG, "Selected: %01d:%02d".format(hour, minute))
+
+                    mBreak.duration = hour * 60 * 60 + minute * 60
+                    // update db
+                    mSession!!.breaks = mutableListOf(mBreak)
+                    mSessionRef.set(mSession!!.toMap())
+
+                    // update TextView on Bottom Dialog
                     tvBreaks.text = "%01d:%02d".format(hour, minute)
                 }
                 val mDurationMinutes: Int = mBreak.duration / 60
@@ -323,37 +344,44 @@ class SessionBottomDialogFragment : BottomSheetDialogFragment() {
                 tvCategory.text = mCategoryWork.title
 
 
-                // prepare bulk update
-                val childUpdates = HashMap<String, Any?>()
+                tvCategoryIcon.text = mCategoryWork.title.substring(0, 1)
+                val mColor = Color.parseColor(mCategoryWork.color)
+                mTvCategoryIconBackground.setColor(mColor)
 
-                val pathA = mSessionRef.child(CategoryWork.FBP_SHORT).path.toString()
-                childUpdates[pathA] = mCategoryWork.toMapNoSessions()
 
-                val pathB = mDatabaseRef.child(WlbUser.FBP).child(mAuth.currentUser!!.uid)
-                        .child(CategoryWork.FBP)
-                        .child(mCategoryWorkObjectId)
-                        .child(Session.FBP)
-                        .child(mSession!!.objectId!!).path.toString()
-                childUpdates[pathB] = true
-                Log.d(TAG, "pathB: $pathB - set to true")
+                // store possible old CategoryWork objectId
+                var mOldCatWorkObjectId: String? = null
+                if (mSession!!.category?.objectId != null) mOldCatWorkObjectId = mSession!!.category!!.objectId
+
+                val batch = db.batch()
+
+                mSession!!.category = mCategoryWork
+                batch.update(mSessionRef, CategoryWork.FBP_SHORT, mSession!!.category?.toMapNoSessions())
+
+                // store an array on the CategoryWork instance of every session where the instance is used
+                val mCatWorkRef = userRef.collection(CategoryWork.FBP).document(mCategoryWorkObjectId)
+                batch.update(mCatWorkRef, Session.FBP, FieldValue.arrayUnion(mSession!!.objectId))
 
                 // check if entry has an old category
-                if (mSession?.category != null) {
+                if (mOldCatWorkObjectId != null) {
                     // if a different category was selected remove Session entry from old category
-                    if (mSession?.category?.objectId != mCategoryWorkObjectId) {
-                        val pathC = mDatabaseRef.child(WlbUser.FBP).child(mAuth.currentUser!!.uid)
-                                .child(CategoryWork.FBP)
-                                .child(mSession?.category?.objectId!!)
-                                .child(Session.FBP)
-                                .child(mSession!!.objectId!!).path.toString()
-                        childUpdates[pathC] = null
-                        Log.d(TAG, "pathC: $pathC - set to null")
+                    if (mOldCatWorkObjectId != mCategoryWorkObjectId) {
+                        batch.update(userRef.collection(CategoryWork.FBP).document(mOldCatWorkObjectId),
+                                Session.FBP, FieldValue.arrayRemove(mSession!!.objectId))
+                        Log.d(TAG, "removed from array on Category Work")
                     }
                 }
 
                 // execute bulk update
-                mDatabaseRef.updateChildren(childUpdates)
-                Log.d(TAG, "updateChildren done")
+                batch.commit()
+                        .addOnFailureListener { e ->
+                            Log.w(TAG, "Failed to start new session! Error: ", e)
+                            // this catches the error.. may be do something with this?! UI does reflect the
+                            // intended change until refresh!
+                        }
+                        .addOnSuccessListener { _ ->
+                            Log.d(TAG, "updateChildren done")
+                        }
 
                 numberList.dismiss()
             }
@@ -367,14 +395,13 @@ class SessionBottomDialogFragment : BottomSheetDialogFragment() {
             val mBuilder = AlertDialog.Builder(context!!)
             mBuilder.setTitle("Delete this entry?")
 
-            if (mSession!!.finished!!) {
+            if (mSession!!.finished) {
                 mBuilder.setMessage("Are you sure you want to delete the entry started: \n" +
                         "${mSession!!.getDateStart()} ${mSession!!.getTimeStart()}\n")
 
                 mBuilder.setCancelable(false)
                 mBuilder.setPositiveButton("Delete") { _, _ ->
-                    mDatabaseRef.child(Session.FBP).child(mAuth.currentUser!!.uid)
-                            .child(mSession!!.objectId!!).removeValue()
+                    userRef.collection(Session.FBP).document(mSession!!.objectId!!).delete()
                     dismiss()
                 }
 
@@ -383,19 +410,21 @@ class SessionBottomDialogFragment : BottomSheetDialogFragment() {
                 mBuilder.setCancelable(false)
                 mBuilder.setPositiveButton("Discard") { _, _ ->
 
-                    // prepare bulk update
-                    val childUpdates = HashMap<String, Any?>()
+                    val batch = db.batch()
 
-                    val pathA = mDatabaseRef.child(Session.FBP).child(mAuth.currentUser!!.uid)
-                            .child(mSession!!.objectId!!).path.toString()
-                    childUpdates[pathA] = null
-
-                    val pathB = mDatabaseRef.child(WlbUser.FBP).child(mAuth.currentUser!!.uid)
-                            .child(Session.FBP_SESSION_RUNNING).path.toString()
-                    childUpdates[pathB] = null
+                    batch.update(userRef, Session.FBP_SESSION_RUNNING, FieldValue.delete())
+                    batch.delete(userRef.collection(Session.FBP).document(mSession!!.objectId!!))
 
                     // execute bulk update
-                    mDatabaseRef.updateChildren(childUpdates)
+                    batch.commit()
+                            .addOnFailureListener { e ->
+                                Log.w(TAG, "Failed to start new session! Error: ", e)
+                                // this catches the error.. may be do something with this?! UI does reflect the
+                                // intended change until refresh!
+                            }
+                            .addOnSuccessListener { _ ->
+                                Log.d(TAG, "updateChildren done")
+                            }
 
                     dismiss()
                 }
@@ -430,14 +459,11 @@ class SessionBottomDialogFragment : BottomSheetDialogFragment() {
 
     override fun onStart() {
         super.onStart()
-        mCategoryWorkRef.addValueEventListener(mCategoryWorkListener)
-        mSessionRef.addValueEventListener(mSessionListener)
+
     }
 
     override fun onStop() {
         super.onStop()
-        mCategoryWorkRef.removeEventListener(mCategoryWorkListener)
-        mSessionRef.removeEventListener(mSessionListener)
     }
 
     companion object {
@@ -448,8 +474,8 @@ class SessionBottomDialogFragment : BottomSheetDialogFragment() {
 
         private var mBottomSheetListener: BottomSheetListener? = null
 
-        fun newInstance(): SessionBottomDialogFragment {
-            val fragmentSessionBottomDialog = SessionBottomDialogFragment()
+        fun newInstance(): SessionBottomSheetFragment {
+            val fragmentSessionBottomDialog = SessionBottomSheetFragment()
             val args = Bundle()
             fragmentSessionBottomDialog.arguments = args
             return fragmentSessionBottomDialog

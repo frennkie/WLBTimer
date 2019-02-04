@@ -54,6 +54,7 @@
     <string name="drawer_nav_title_top">WLB</string>
     <string name="drawer_nav_title_customize">Customize</string>
     <string name="drawer_nav_home">Home</string>
+    <string name="drawer_nav_sessions">Sessions</string>
     <string name="drawer_nav_break">Break Rules</string>
     <string name="drawer_nav_category_work">Work Categories</string>
     <string name="drawer_nav_category_non_work">Other Categories</string>
@@ -168,6 +169,7 @@
 
     <!-- Note (Demo) -->
     <string name="title_activity_note">Notes</string>
+    <string name="title_activity_session">Sessions</string>
 
     <string name="list_item_session_date_dummy">2019–01–31</string>
     <string name="list_item_session_start_dummy">09:00</string>

@@ -7,10 +7,11 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.helper.ItemTouchHelper
-import com.firebase.ui.database.FirebaseRecyclerOptions
+import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import de.rhab.wlbtimer.R
 import de.rhab.wlbtimer.adapter.CategoryWorkAdapter
 import de.rhab.wlbtimer.model.CategoryWork
@@ -20,7 +21,7 @@ class CategoryWorkActivity : AppCompatActivity() {
 
     private lateinit var mAdapter: CategoryWorkAdapter
 
-    private val mDatabaseRef = FirebaseDatabase.getInstance().reference
+    private val db = FirebaseFirestore.getInstance()
 
     private var mAuthListener: FirebaseAuth.AuthStateListener? = null
 
@@ -53,18 +54,18 @@ class CategoryWorkActivity : AppCompatActivity() {
 
     private fun setUpRecyclerView() {
         // sort Categories alphabetically by title
-        val query = mDatabaseRef.child(WlbUser.FBP)
-                .child(mAuth.currentUser!!.uid)
-                .child(CategoryWork.FBP)
-                .orderByChild("title")
+        val query = db.collection(WlbUser.FBP)
+                .document(mAuth.currentUser!!.uid)
+                .collection(CategoryWork.FBP)
+                .orderBy("title", Query.Direction.ASCENDING)
 
-        val options = FirebaseRecyclerOptions.Builder<CategoryWork>()
+        val options = FirestoreRecyclerOptions.Builder<CategoryWork>()
                 .setQuery(query, CategoryWork::class.java)
                 .build()
 
         mAdapter = CategoryWorkAdapter(options)
 
-        val recyclerView = findViewById<RecyclerView>(R.id.recycler_view)
+        val recyclerView = findViewById<RecyclerView>(R.id.category_work_recycler_view)
         recyclerView.setHasFixedSize(true)
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = mAdapter
@@ -81,18 +82,16 @@ class CategoryWorkActivity : AppCompatActivity() {
         }).attachToRecyclerView(recyclerView)
 
         mAdapter.setOnItemClickListener(object : CategoryWorkAdapter.OnItemClickListener {
-            override fun onItemClick(dataSnapshot: DataSnapshot, position: Int) {
-                val categoryWork = dataSnapshot.getValue(CategoryWork::class.java)!!
-                val key = dataSnapshot.key
-                val path = dataSnapshot.ref.toString()
+            override fun onItemClick(documentSnapshot: DocumentSnapshot, position: Int) {
+                val categoryWork = documentSnapshot.toObject(CategoryWork::class.java)!!
+                val id = documentSnapshot.id
                 val color = categoryWork.color
                 val title = categoryWork.title
                 val factor = categoryWork.factor
 
                 // only serializable data can be sent to intent via putExtra
                 val intent = Intent(this@CategoryWorkActivity, CategoryWorkUpdateActivity::class.java)
-                intent.putExtra("KEY", key)
-                intent.putExtra("PATH", path)
+                intent.putExtra("ID", id)
                 intent.putExtra("COLOR", color)
                 intent.putExtra("TITLE", title)
                 intent.putExtra("FACTOR", factor.toString())

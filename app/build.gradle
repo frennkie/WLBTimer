@@ -2,8 +2,8 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 ext.versionMajor = 0
-ext.versionMinor = 9
-ext.versionPatch = 10
+ext.versionMinor = 10
+ext.versionPatch = 2
 ext.versionClassifier = null
 ext.isDev = false
 ext.minimumSdkVersion = 23
@@ -70,7 +70,7 @@ dependencies {
     implementation "com.google.android.gms:play-services-auth:16.0.1"
     implementation "com.google.code.gson:gson:2.8.5"
     implementation "com.google.firebase:firebase-auth:16.1.0"
-    implementation "com.google.firebase:firebase-core:16.0.6"
+    implementation "com.google.firebase:firebase-core:16.0.7"
     implementation 'com.google.firebase:firebase-firestore:18.0.0'
 
     implementation "com.crashlytics.sdk.android:crashlytics:2.9.8"

@@ -11,8 +11,21 @@
             android:title="@string/drawer_nav_home" />
     </group>
 
+
     <group
         android:id="@+id/grpid2"
+        android:checkableBehavior="single">
+
+        <item
+            android:id="@+id/nav_sessions"
+            android:icon="@drawable/ic_add_a_photo_black_24dp"
+            android:title="@string/drawer_nav_sessions" />
+    </group>
+
+
+
+    <group
+        android:id="@+id/grpid3"
         android:checkableBehavior="single">
 
         <item
@@ -35,7 +48,7 @@
     </group>
 
     <group
-        android:id="@+id/grpid3"
+        android:id="@+id/grpid4"
         android:checkableBehavior="single">
 
         <item
@@ -45,7 +58,7 @@
     </group>
 
     <group
-        android:id="@+id/grpid4"
+        android:id="@+id/grpid5"
         android:checkableBehavior="single">
 
         <item
@@ -55,7 +68,7 @@
     </group>
 
     <group
-        android:id="@+id/grpid5"
+        android:id="@+id/grpid6"
         android:checkableBehavior="single">
 
         <item

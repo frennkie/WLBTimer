@@ -2,8 +2,9 @@ package de.rhab.wlbtimer.model
 
 import android.graphics.Color
 import android.util.Log
-import com.google.firebase.database.Exclude
-import com.google.firebase.database.IgnoreExtraProperties
+import com.google.firebase.firestore.Exclude
+import com.google.firebase.firestore.IgnoreExtraProperties
+
 
 @IgnoreExtraProperties
 data class CategoryNonWork(

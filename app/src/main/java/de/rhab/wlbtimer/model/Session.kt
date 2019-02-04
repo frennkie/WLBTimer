@@ -1,8 +1,8 @@
 package de.rhab.wlbtimer.model
 
-import android.util.Log
-import com.google.firebase.database.Exclude
-import com.google.firebase.database.IgnoreExtraProperties
+import com.google.firebase.firestore.Exclude
+import com.google.firebase.firestore.IgnoreExtraProperties
+
 import org.threeten.bp.ZonedDateTime
 import org.threeten.bp.format.DateTimeFormatter
 import org.threeten.bp.temporal.ChronoUnit
@@ -13,8 +13,8 @@ import kotlin.math.floor
 data class Session(
         var objectId: String? = null,
         var category: CategoryWork? = null,
-        var tsStartForward: Long = 0,
-        var tsStartReverse: Long = 0,
+        var tsStartForward: Long = 0,  // is this of any use after switch to Firestore?!
+        var tsStartReverse: Long = 0,  // is this of any use after switch to Firestore?!
         var tsStart: String? = null,
         var tsEnd: String? = null,
         var allDay: Boolean = false,
@@ -25,8 +25,6 @@ data class Session(
 ) {
     @Exclude
     fun toMap(): Map<String, Any?> {
-        Log.d(TAG, "foobar: $allDay")
-        Log.d(TAG, "foobar: $finished")
         return if (breaks != null) {
             mapOf(
                     "objectId" to objectId,
@@ -53,28 +51,22 @@ data class Session(
 
     }
 
-//    @Exclude
-//    fun getDuration(): String {
-//        if (this.tsEnd == null) {
-//            return "running"
-//        }
-//
-//        val startEpoch = ZonedDateTime.parse(this.tsStart)!!.toEpochSecond()
-//        val endEpoch = ZonedDateTime.parse(this.tsEnd)!!.toEpochSecond()
-//        val duration = endEpoch - startEpoch
-//
-//        return when {
-//            duration < 0 -> "invalid"
-//            duration.toInt() == 0 -> "zero"
-//            else -> {
-//                val durationMins = duration / 60
-//                val durationHoursStr = "%.0f".format(floor(durationMins / 60.0)).padStart(2, '0')
-//                val durationMinsStr = durationMins.rem(60).toString().padStart(2, '0')
-//
-//                "$durationHoursStr:$durationMinsStr"
-//            }
-//        }
-//    }
+    @Exclude
+    fun getDurationLong(): Long {
+        if (this.tsEnd == null) {
+            return -1
+        }
+
+        val startEpoch = ZonedDateTime.parse(this.tsStart)!!.toEpochSecond()
+        val endEpoch = ZonedDateTime.parse(this.tsEnd)!!.toEpochSecond()
+        val duration = endEpoch - startEpoch
+
+        return when {
+            duration < 0 -> -1
+            duration.toInt() == 0 -> 0
+            else -> duration
+        }
+    }
 
     @Exclude
     fun getDurationWeightedExcludingBreaks(mFactor: Double = 1.0): String {
@@ -139,6 +131,20 @@ data class Session(
     fun getDateStart(): String {
         return if (this.tsStart != null) {
             Session.toDateStr(ZonedDateTime.parse(this.tsStart))
+        } else {
+            return "..."
+        }
+    }
+
+    @Exclude
+    fun getDateStartWithWeekday(): String {
+        return if (this.tsStart != null) {
+            val dateString = Session.toDateStr(ZonedDateTime.parse(this.tsStart)).subSequence(5, 10)
+
+            val zDT = ZonedDateTime.parse(this.tsStart)
+            val weekday = zDT.dayOfWeek.name.substring(0, 2).toLowerCase().capitalize()
+
+            "$dateString ($weekday)"
         } else {
             return "..."
         }

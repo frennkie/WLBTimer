@@ -12,4 +12,4 @@
     app:reverseLayout="true"
     app:layoutManager="android.support.v7.widget.LinearLayoutManager"
     tools:context=".fragment.HomeFragment"
-    tools:listitem="@layout/item_session" />
+    tools:listitem="@layout/item_session_fragment" />
