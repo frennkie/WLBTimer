@@ -1,16 +1,21 @@
 package de.rhab.wlbtimer.activity
 
+import android.app.ProgressDialog.show
 import android.content.Intent
 import android.os.Bundle
+import android.support.design.widget.Snackbar
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.helper.ItemTouchHelper
+import android.util.Log
+import android.widget.Toast
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import de.rhab.wlbtimer.R
 import de.rhab.wlbtimer.adapter.SessionAdapter
 import de.rhab.wlbtimer.fragment.SessionBottomSheetFragment
@@ -52,7 +57,7 @@ class SessionActivity : AppCompatActivity() {
         val query = db.collection(WlbUser.FBP)
                 .document(mAuth.currentUser!!.uid)
                 .collection(Session.FBP)
-//                .orderBy("tsStartForward")
+                .orderBy("tsStart", Query.Direction.DESCENDING)
 
         val options = FirestoreRecyclerOptions.Builder<Session>()
                 .setQuery(query, Session::class.java)
@@ -73,13 +78,23 @@ class SessionActivity : AppCompatActivity() {
             }
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                AlertDialog.Builder(recyclerView.context)
-                        .setTitle("Disabled")
-                        .setMessage("Deleting Session by swipe is currently disabled")
-                        .setNegativeButton(android.R.string.cancel, null)
-                        .show()
-                // ToDo(frennkie) this (also) thinks it has removed the entry)
-                // mAdapter.deleteItem(viewHolder.adapterPosition)
+
+                val mBuilder = AlertDialog.Builder(recyclerView.context)
+                mBuilder.setTitle("Delete entry?")
+                mBuilder.setMessage("Are you sure you want to delete this entry? This can not be undone!")
+                mBuilder.setNeutralButton(R.string.session_cancel_delete) { _, _ ->
+                    Log.d(TAG, "canceled swipe delete")
+                    mAdapter.notifyItemChanged(viewHolder.adapterPosition)
+                }
+                mBuilder.setPositiveButton(R.string.session_confirm_delete) { _, _ ->
+                    Log.d(TAG, "deleted by swipe")
+                    mAdapter.deleteItem(viewHolder.adapterPosition)
+                }
+                mBuilder.setCancelable(false)  // user has two press one of the two buttons
+
+                val mDialog = mBuilder.create()
+                mDialog.show()
+
             }
         }).attachToRecyclerView(recyclerView)
 
@@ -88,12 +103,9 @@ class SessionActivity : AppCompatActivity() {
                 val session = documentSnapshot.toObject(Session::class.java)
                 val id = documentSnapshot.id
 
-                val sessionBottomDialogFragment = SessionBottomSheetFragment.newInstance()
-                val bundle = Bundle()
-
-                bundle.putString(SessionBottomSheetFragment.ARG_SESSION_ID, session!!.objectId)
-                sessionBottomDialogFragment.arguments = bundle
-                sessionBottomDialogFragment.show(supportFragmentManager, "session_dialog_fragment")
+                Snackbar.make(findViewById(R.id.session_recycler_view),
+                        "ToDo: Start Session Detail/Update Activity on $id ${session?.objectId}",
+                        Snackbar.LENGTH_LONG).show()
 
             }
         })

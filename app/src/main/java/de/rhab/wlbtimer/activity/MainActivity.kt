@@ -18,10 +18,13 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.TextView
+import android.widget.Toast
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.*
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 import com.jakewharton.threetenabp.AndroidThreeTen
 import de.rhab.wlbtimer.R
 import de.rhab.wlbtimer.adapter.SessionAdapter
@@ -54,6 +57,7 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
 
     var mSessionRunningId: String? = null
 
+    private lateinit var remoteConfig: FirebaseRemoteConfig
 
     private var content: FrameLayout? = null
 
@@ -212,6 +216,64 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
             stopRunningSession()
         }
 
+        // Get Remote Config instance.
+        // [START get_remote_config_instance]
+        remoteConfig = FirebaseRemoteConfig.getInstance()
+        // [END get_remote_config_instance]
+
+        // Create a Remote Config Setting to enable developer mode, which you can use to increase
+        // the number of fetches available per hour during development. See Best Practices in the
+        // README for more information.
+        // [START enable_dev_mode]
+        val configSettings = FirebaseRemoteConfigSettings.Builder()
+                .setDeveloperModeEnabled(BuildConfig.DEBUG)
+                .build()
+        remoteConfig.setConfigSettings(configSettings)
+        // [END enable_dev_mode]
+
+        // Set default Remote Config parameter values. An app uses the in-app default values, and
+        // when you need to adjust those defaults, you set an updated value for only the values you
+        // want to change in the Firebase console. See Best Practices in the README for more
+        // information.
+        // [START set_default_values]
+        remoteConfig.setDefaults(R.xml.remote_config_defaults)
+        // [END set_default_values]
+
+
+        val lastNEntries = findViewById<TextView>(R.id.tv_main_header_last_n_entries)
+        lastNEntries.text = "Last ${remoteConfig.getString(MAIN_LAST_N_ENTRIES)} Entries"
+
+
+        val isUsingDeveloperMode = remoteConfig.info.configSettings.isDeveloperModeEnabled
+
+        // If your app is using developer mode, cacheExpiration is set to 0, so each fetch will
+        // retrieve values from the service.
+        val cacheExpiration: Long = if (isUsingDeveloperMode) {
+            0
+        } else {
+            60 * 60 // 1 hour in seconds.
+            //60 * 60 * 12 // 12 hour in seconds.
+        }
+
+        // [START fetch_config_with_callback]
+        // cacheExpirationSeconds is set to cacheExpiration here, indicating the next fetch request
+        // will use fetch data from the Remote Config service, rather than cached parameter values,
+        // if cached parameter values are more than cacheExpiration seconds old.
+        // See Best Practices in the README for more information.
+        remoteConfig.fetch(cacheExpiration)
+                .addOnCompleteListener(this) { task ->
+                    if (task.isSuccessful) {
+                        Toast.makeText(this, "Fetch Succeeded",
+                                Toast.LENGTH_SHORT).show()
+
+                        // After config data is successfully fetched, it must be activated before newly fetched
+                        // values are returned.
+                        remoteConfig.activateFetched()
+                    }
+                }
+        // [END fetch_config_with_callback]
+
+
         // ToDo(frennkie) hm...
         if (mAuth.currentUser != null) {
             userRef = db.collection(WlbUser.FBP).document(mAuth.currentUser!!.uid)
@@ -255,6 +317,7 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
                 .document(mAuth.currentUser!!.uid)
                 .collection(Session.FBP)
                 .orderBy("tsStart", Query.Direction.DESCENDING)
+                .limit(remoteConfig.getLong(MAIN_LAST_N_ENTRIES))
 
         val options = FirestoreRecyclerOptions.Builder<Session>()
                 .setQuery(query, Session::class.java)
@@ -513,6 +576,9 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
     companion object {
 
         private const val TAG = "MainActivity"
+
+        // Remote Config
+        private const val MAIN_LAST_N_ENTRIES = "main_last_n_entries"
 
         // Unique tag for the intent reply
         const val TEXT_REQUEST_REPORT_ACTIVITY_TEST = 1
