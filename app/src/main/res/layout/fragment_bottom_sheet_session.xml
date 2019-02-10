@@ -16,7 +16,9 @@
         android:textColor="@color/md_bottom_sheet_title_color"
         android:textSize="16sp" />
 
+
     <LinearLayout
+        android:id="@+id/linear_layout_start"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal">
@@ -35,6 +37,22 @@
             android:text=""
             android:textColor="@color/md_bottom_sheet_text_color"
             android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/tv_btn_start_symbol_all_day"
+            android:layout_width="22dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="@dimen/dp_16"
+            android:layout_marginEnd="@dimen/dp_16"
+            android:backgroundTint="@android:color/white"
+            android:drawableStart="@drawable/ic_today_black_24dp"
+            android:drawablePadding="@dimen/dp_32"
+            android:drawableTint="@color/md_bottom_sheet_text_color"
+            android:gravity="start|center_vertical"
+            android:text=""
+            android:textColor="@color/md_bottom_sheet_text_color"
+            android:textSize="16sp"
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/tv_btn_start_date"
@@ -65,6 +83,7 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/linear_layout_end"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal">
@@ -113,6 +132,7 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/linear_layout_breaks"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal">
@@ -161,6 +181,7 @@
 
 
     <LinearLayout
+        android:id="@+id/linear_layout_duration"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal">
@@ -208,7 +229,45 @@
             android:textStyle="italic" />
     </LinearLayout>
 
+
     <LinearLayout
+        android:id="@+id/linear_layout_note"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tv_btn_note_symbol"
+            android:layout_width="22dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="@dimen/dp_16"
+            android:layout_marginEnd="@dimen/dp_16"
+            android:backgroundTint="@android:color/white"
+            android:drawableStart="@drawable/ic_note_black_24dp"
+            android:drawablePadding="@dimen/dp_32"
+            android:drawableTint="@color/md_bottom_sheet_text_color"
+            android:gravity="start|center_vertical"
+            android:text=""
+            android:textColor="@color/md_bottom_sheet_text_color"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/tv_btn_note"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginStart="@dimen/dp_16"
+            android:layout_marginEnd="@dimen/dp_16"
+            android:backgroundTint="@android:color/white"
+            android:gravity="start|center_vertical"
+            android:text="@string/bottom_sheet_note"
+            android:textColor="@color/md_bottom_sheet_text_color"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:id="@+id/linear_layout_category"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal">

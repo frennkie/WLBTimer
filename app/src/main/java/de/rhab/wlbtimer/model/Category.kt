@@ -7,8 +7,9 @@ import com.google.firebase.firestore.IgnoreExtraProperties
 
 
 @IgnoreExtraProperties
-data class CategoryWork (
+data class Category (
         var objectId: String = "",
+        var type: String = Category.TYPE_WORK,
         var title: String = "",
         var color: String = "darkgray",
         var factor: Double = 1.0,
@@ -19,6 +20,7 @@ data class CategoryWork (
     fun toMap(): Map<String, Any?> {
         return mapOf(
                 "objectId" to objectId,
+                "type" to type,
                 "title" to title,
                 "color" to color,
                 "factor" to factor,
@@ -31,6 +33,7 @@ data class CategoryWork (
     fun toMapNoSessions(): Map<String, Any?> {
         return mapOf(
                 "objectId" to objectId,
+                "type" to type,
                 "title" to title,
                 "color" to color,
                 "factor" to factor,
@@ -50,8 +53,14 @@ data class CategoryWork (
     }
 
     companion object {
-        const val FBP = "category_work"
-        const val FBP_SHORT = "category"  // ToDo(frennkie) hm..
-        private const val TAG = "CategoryWork"
+
+        const val TYPE_WORK = "work"
+
+        const val TYPE_OFF = "off"
+
+        const val FBP = "category"
+
+        private const val TAG = "Category"
+
     }
 }

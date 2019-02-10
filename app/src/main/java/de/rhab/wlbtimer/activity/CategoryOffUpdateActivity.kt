@@ -15,12 +15,11 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.larswerkman.holocolorpicker.ColorPicker
 import de.rhab.wlbtimer.R
-import de.rhab.wlbtimer.model.CategoryNonWork
-import de.rhab.wlbtimer.model.CategoryWork
+import de.rhab.wlbtimer.model.Category
 import de.rhab.wlbtimer.model.WlbUser
 
 
-class CategoryNonWorkUpdateActivity : AppCompatActivity() {
+class CategoryOffUpdateActivity : AppCompatActivity() {
 
     private val db = FirebaseFirestore.getInstance()
 
@@ -28,7 +27,7 @@ class CategoryNonWorkUpdateActivity : AppCompatActivity() {
 
     private val mAuth = FirebaseAuth.getInstance()
 
-    private lateinit var mCategoryNonWorkRef: DocumentReference
+    private lateinit var mCategoryRef: DocumentReference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,39 +35,39 @@ class CategoryNonWorkUpdateActivity : AppCompatActivity() {
         // check user authentication - don't forget onStart() and onStop()
         mAuthListener = FirebaseAuth.AuthStateListener { auth ->
             if (auth.currentUser == null) {
-                startActivity(Intent(this@CategoryNonWorkUpdateActivity, SignInActivity::class.java))
+                startActivity(Intent(this@CategoryOffUpdateActivity, SignInActivity::class.java))
             }
         }
 
-        setContentView(R.layout.activity_category_non_work_update)
+        setContentView(R.layout.activity_category_off_update)
 
         val toolbar = findViewById<android.support.v7.widget.Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        var mId = intent.getStringExtra("KEY")
+        val mId = intent.getStringExtra("KEY")
         val mTitle = intent.getStringExtra("TITLE")
         var mColor = intent.getStringExtra("COLOR") ?: "#A89AAF"
 
-        var mCategoryNonWork: CategoryNonWork? = null
+        var mCategory: Category? = null
 
         val userRef = db.collection(WlbUser.FBP).document(mAuth.currentUser!!.uid)
 
         if (mId == null) {
-            setTitle(R.string.title_activity_category_non_work_add)
-            Log.d(TAG, "asked to add new CategoryNonWork")
-            mCategoryNonWorkRef = userRef.collection(CategoryNonWork.FBP).document()
+            setTitle(R.string.title_activity_category_off_add)
+            Log.d(TAG, "asked to add new Category")
+            mCategoryRef = userRef.collection(Category.FBP).document()
 
         } else {
-            setTitle(R.string.title_activity_category_non_work_update)
-            Log.d(TAG, "asked to edit CategoryNonWork with key: $mId")
-            mCategoryNonWorkRef = userRef.collection(CategoryWork.FBP).document(mId)
+            setTitle(R.string.title_activity_category_off_update)
+            Log.d(TAG, "asked to edit Category with key: $mId")
+            mCategoryRef = userRef.collection(Category.FBP).document(mId)
 
-            mCategoryNonWorkRef.get()
+            mCategoryRef.get()
                     .addOnSuccessListener { documentSnapshot ->
                         if (documentSnapshot != null) {
-                            mCategoryNonWork = documentSnapshot.toObject(CategoryNonWork::class.java)
-                            Log.d(TAG, "found: $mCategoryNonWork")
+                            mCategory = documentSnapshot.toObject(Category::class.java)
+                            Log.d(TAG, "found: $mCategory")
                         } else {
                             Log.w(TAG, "No such document")
                         }
@@ -79,11 +78,11 @@ class CategoryNonWorkUpdateActivity : AppCompatActivity() {
                     }
         }
 
-        if (mCategoryNonWork == null) {
-            mCategoryNonWork = CategoryNonWork()
+        if (mCategory == null) {
+            mCategory = Category()
         }
 
-        val editTextTitle = findViewById<EditText>(R.id.category_non_work_update_title)
+        val editTextTitle = findViewById<EditText>(R.id.category_off_update_title)
         editTextTitle.setText(mTitle)
         editTextTitle.requestFocus()
         editTextTitle.selectAll()
@@ -107,25 +106,26 @@ class CategoryNonWorkUpdateActivity : AppCompatActivity() {
             Log.d(TAG, "new/updated Color: $mColor")
         }
 
-        val buttonSaveCategoryNonWork = findViewById<FloatingActionButton>(R.id.button_save)
-        buttonSaveCategoryNonWork.setOnClickListener {_ ->
+        val buttonSaveCategory = findViewById<FloatingActionButton>(R.id.button_save)
+        buttonSaveCategory.setOnClickListener {_ ->
 
             if (mId == null) {
-                Log.d(TAG, "add CategoryNonWork")
+                Log.d(TAG, "add Category")
                 Toast.makeText(this, "Adding...", Toast.LENGTH_SHORT).show()
 
             } else {
-                Log.d(TAG, "update CategoryNonWork")
+                Log.d(TAG, "update Category")
                 Toast.makeText(this, "Updating...", Toast.LENGTH_SHORT).show()
             }
 
-            mCategoryNonWork!!.objectId = mCategoryNonWorkRef.id
-            mCategoryNonWork!!.title = editTextTitle.text.toString()
-            mCategoryNonWork!!.color = mColor
+            mCategory!!.objectId = mCategoryRef.id
+            mCategory!!.type = Category.TYPE_OFF
+            mCategory!!.title = editTextTitle.text.toString()
+            mCategory!!.color = mColor
 
             val batch = db.batch()
-            batch.set(mCategoryNonWorkRef, mCategoryNonWork!!)
-            batch.update(userRef, "CategoryNonWork-last", mCategoryNonWorkRef.id)
+            batch.set(mCategoryRef, mCategory!!)
+            batch.update(userRef, "category-last", mCategoryRef.id)
 
             batch.commit()
                     .addOnFailureListener { e ->
@@ -157,6 +157,6 @@ class CategoryNonWorkUpdateActivity : AppCompatActivity() {
 
     companion object {
 
-        private const val TAG = "CatNonWorkUpdateAct"
+        private const val TAG = "CategoryOffUpdateAct"
     }
 }

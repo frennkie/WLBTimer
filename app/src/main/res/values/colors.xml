@@ -4,6 +4,14 @@
     <!--<color title="colorPrimaryDark">#303F9F</color>-->
     <!--<color title="colorAccent">#FF4081</color>-->
 
+
+
+    <color name="session_work_card_week_even">#d7bea6</color>
+    <color name="session_work_card_week_odd">#b49d87</color>
+
+    <color name="session_off_card_week_even">#bc8dd6</color>
+    <color name="session_off_card_week_odd">#ab7cc6</color>
+
     <color name="white">#FFFFFF</color>
 
     <color name="md_bottom_sheet_title_color">#FF4081</color>
@@ -17,10 +25,10 @@
     <color name="work_travel">#ffd07e</color>
     <color name="work_travel_long_distance">#ffb120</color>
 
-    <color name="non_work_default">#a89aaf</color>
-    <color name="non_work_vacation">#61307c</color>
-    <color name="non_work_public_holiday">#8f57bf</color>
-    <color name="non_work_sick_leave">#7c306a</color>
+    <color name="off_default">#a89aaf</color>
+    <color name="off_vacation">#61307c</color>
+    <color name="off_public_holiday">#8f57bf</color>
+    <color name="off_sick_leave">#7c306a</color>
 
     <color name="black_overlay">#66000000</color>
 

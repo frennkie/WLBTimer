@@ -30,6 +30,7 @@ import de.rhab.wlbtimer.R
 import de.rhab.wlbtimer.adapter.SessionAdapter
 import de.rhab.wlbtimer.fragment.SessionBottomSheetFragment
 import de.rhab.wlbtimer.model.Break
+import de.rhab.wlbtimer.model.Category
 import de.rhab.wlbtimer.model.Session
 import de.rhab.wlbtimer.model.WlbUser
 
@@ -115,10 +116,6 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
             // For example, swap UI fragments here
 
             when (menuItem.itemId) {
-                R.id.nav_home -> {
-                    Log.d(TAG, "DrawerNav: Go Home")
-                }
-
                 R.id.nav_sessions -> {
                     Log.d(TAG, "DrawerNav: Sessions")
                     startActivity(Intent(this, SessionActivity::class.java))
@@ -131,9 +128,9 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
                     Log.d(TAG, "DrawerNav: Category Work")
                     startActivity(Intent(this, CategoryWorkActivity::class.java))
                 }
-                R.id.nav_category_non_work -> {
-                    Log.d(TAG, "DrawerNav: Category Non Work")
-                    startActivity(Intent(this, CategoryNonWorkActivity::class.java))
+                R.id.nav_category_off -> {
+                    Log.d(TAG, "DrawerNav: Category Off")
+                    startActivity(Intent(this, CategoryOffActivity::class.java))
                 }
                 R.id.nav_category_note -> {
                     Log.d(TAG, "DrawerNav: Note")
@@ -168,35 +165,50 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
         val tvTopTitle = headerView.findViewById<TextView>(R.id.tv_drawer_top_title)
 
         if (mAuth.currentUser != null) {
+            var mTopTitleText = ""
+
             if (mAuth.currentUser!!.isAnonymous) {
                 Log.d(TAG, "anon: Guest")
-                tvTopTitle.text = "Guest"
+                mTopTitleText = "Guest"
+
             } else {
-                Log.d(TAG, "anon: User: ${mAuth.currentUser!!.uid}")
-                Log.d(TAG, "anon: UserMail: ${mAuth.currentUser!!.email}")
-                if (mAuth.currentUser!!.email != null) {
-                    tvTopTitle.text = "${mAuth.currentUser!!.email}\n${mAuth.currentUser!!.uid}"
+                mTopTitleText += if (mAuth.currentUser!!.displayName != null) {
+                    if (mTopTitleText.isEmpty()) {
+                        "${mAuth.currentUser!!.displayName}"
+                    } else {
+                        "\n${mAuth.currentUser!!.displayName}"
+                    }
                 } else {
-                    tvTopTitle.text = mAuth.currentUser!!.uid
+                    // ToDo(frennkie) check this
+                    if (mTopTitleText.isEmpty()) {
+                        "NickName"
+                    } else {
+                        "\nNickName"
+                    }
+                }
+
+                if (mAuth.currentUser!!.email != null) {
+                    mTopTitleText += if (mTopTitleText.isEmpty()) {
+                        "${mAuth.currentUser!!.email}"
+                    } else {
+                        "\n${mAuth.currentUser!!.email}"
+                    }
                 }
             }
+
+            // ToDo(frennkie) for now always add the UID
+            mTopTitleText += if (mTopTitleText.isEmpty()) {
+                mAuth.currentUser!!.uid
+            } else {
+                "\n${mAuth.currentUser!!.uid}"
+            }
+
+            tvTopTitle.text = mTopTitleText
+
         }
 
         fabStartNew = findViewById(R.id.fabStartNew)
         fabStopRunning = findViewById(R.id.fabStopRunning)
-
-//
-//        content = findViewById(R.id.content)
-//
-//        val fragment = HomeFragment.newInstance()
-
-//        addFragment(fragment)
-//
-//        supportFragmentManager
-//                .beginTransaction()
-//                .setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out)
-//                .replace(R.id.content, fragment, fragment.javaClass.simpleName)
-//                .commit()
 
         if (mSessionRunningStatus) {
             fabStartNew.visibility = View.GONE
@@ -263,8 +275,8 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
         remoteConfig.fetch(cacheExpiration)
                 .addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
-                        Toast.makeText(this, "Fetch Succeeded",
-                                Toast.LENGTH_SHORT).show()
+//                        Toast.makeText(this, "Fetch Succeeded",
+//                                Toast.LENGTH_SHORT).show()
 
                         // After config data is successfully fetched, it must be activated before newly fetched
                         // values are returned.
@@ -302,8 +314,38 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
             }
 
             R.id.action_add -> {
-                val sessionBottomDialogFragment = SessionBottomSheetFragment.newInstance()
-                sessionBottomDialogFragment.show(supportFragmentManager, "session_dialog_fragment")
+
+                val mBuilder = AlertDialog.Builder(this)
+                mBuilder.setTitle("Add Entry")
+                mBuilder.setMessage("Choose type of new Entry")
+
+                mBuilder.setNeutralButton(android.R.string.cancel) { _, _ ->
+                    Log.d(TAG, "Cancel")
+                }
+
+                mBuilder.setNegativeButton("Day(s) Off") { _, _ ->
+                    Log.d(TAG, "Day(s) Off")
+                    val sessionBottomDialogFragment = SessionBottomSheetFragment.newInstance()
+                    val bundle = Bundle()
+
+                    bundle.putString(SessionBottomSheetFragment.ARG_SESSION_TYPE, Category.TYPE_OFF)
+                    sessionBottomDialogFragment.arguments = bundle
+                    sessionBottomDialogFragment.show(supportFragmentManager, "session_dialog_fragment")
+                }
+
+                mBuilder.setPositiveButton("Work Entry") { _, _ ->
+                    Log.d(TAG, "Work Entry")
+                    val sessionBottomDialogFragment = SessionBottomSheetFragment.newInstance()
+                    val bundle = Bundle()
+
+                    bundle.putString(SessionBottomSheetFragment.ARG_SESSION_TYPE, Category.TYPE_WORK)
+                    sessionBottomDialogFragment.arguments = bundle
+                    sessionBottomDialogFragment.show(supportFragmentManager, "session_dialog_fragment")
+                }
+
+                val mDialog = mBuilder.create()
+                mDialog.show()
+
                 true
             }
 
@@ -344,18 +386,24 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
                         .setMessage("Deleting Session by swipe is currently disabled")
                         .setPositiveButton(android.R.string.ok, null)
                         .show()
-                mAdapter.notifyItemChanged(viewHolder.adapterPosition)
+                mAdapter.notifyItemChanged(viewHolder.adapterPosition)   // ToDo(frennkie) this is "costly"
                 // mAdapter.deleteItem(viewHolder.adapterPosition)
             }
         }).attachToRecyclerView(recyclerView)
 
         mAdapter.setOnItemClickListener(object : SessionAdapter.OnItemClickListener {
             override fun onItemClick(documentSnapshot: DocumentSnapshot, position: Int) {
-                val session = documentSnapshot.toObject(Session::class.java)
-                val sessionBottomDialogFragment = SessionBottomSheetFragment.newInstance()
-                val bundle = Bundle()
+                val session = documentSnapshot.toObject(Session::class.java) ?: return
 
-                bundle.putString(SessionBottomSheetFragment.ARG_SESSION_ID, session!!.objectId)
+                val bundle = Bundle()
+                if (session.allDay) {
+                    bundle.putString(SessionBottomSheetFragment.ARG_SESSION_TYPE, Category.TYPE_OFF)
+                } else {
+                    bundle.putString(SessionBottomSheetFragment.ARG_SESSION_TYPE, Category.TYPE_WORK)
+                }
+                bundle.putString(SessionBottomSheetFragment.ARG_SESSION_ID, session.objectId)
+
+                val sessionBottomDialogFragment = SessionBottomSheetFragment.newInstance()
                 sessionBottomDialogFragment.arguments = bundle
                 sessionBottomDialogFragment.show(supportFragmentManager, "session_dialog_fragment")
 
@@ -389,7 +437,7 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
 
         val mSession = Session(
                 // ToDo(frennkie) check for default Category
-                //session.category = CategoryWork(key?!, "Foobar")
+                //session.category = Category(key?!, "Foobar")
                 tsStart = Session.getZonedDateTimeNow().toString(),
                 tsEnd = null,
                 allDay = false,

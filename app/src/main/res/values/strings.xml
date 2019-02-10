@@ -25,6 +25,7 @@
     <string name="bottom_sheet_duration">Duration</string>
     <string name="bottom_sheet_duration_desc">Time weighted, excl. Breaks</string>
 
+    <string name="bottom_sheet_note">Note</string>
     <string name="bottom_sheet_category">Category</string>
 
     <string name="bottom_sheet_remove_session">Remove</string>
@@ -54,10 +55,11 @@
     <string name="drawer_nav_title_top">WLB</string>
     <string name="drawer_nav_title_customize">Customize</string>
     <string name="drawer_nav_home">Home</string>
-    <string name="drawer_nav_sessions">Sessions</string>
+    <string name="drawer_nav_sessions">All Entries</string>
     <string name="drawer_nav_break">Break Rules</string>
-    <string name="drawer_nav_category_work">Work Categories</string>
-    <string name="drawer_nav_category_non_work">Other Categories</string>
+    <string name="drawer_nav_categories">Categories</string>
+    <string name="drawer_nav_category_work">Work</string>
+    <string name="drawer_nav_category_off">Off</string>
     <string name="drawer_nav_note">Note</string>
     <string name="drawer_nav_report">Reports</string>
     <string name="drawer_nav_settings">Settings</string>
@@ -111,7 +113,7 @@
 
     <string name="pref_title_system_sync_settings">System sync settings</string>
 
-    <!-- Settings for CategoryWork -->
+    <!-- Settings for Category -->
     <string name="pref_header_categories">Categories</string>
 
     <string name="pref_categories_title_default_category">Default Category</string>
@@ -150,15 +152,15 @@
         "The time is calculated when the STOP button is pressed.\n\n"
     </string>
 
-    <!-- CategoryNonWork -->
-    <string name="title_activity_category_non_work">Categories (Non Work)</string>
-    <string name="title_activity_category_non_work_add">Add Category (Non Work)</string>
-    <string name="title_activity_category_non_work_update">Update Category (Non Work)</string>
+    <!-- CategoryOff -->
+    <string name="title_activity_category_off">Categories (Off)</string>
+    <string name="title_activity_category_off_add">Add Category (Off)</string>
+    <string name="title_activity_category_off_update">Update Category (Off)</string>
 
-    <string name="update_category_non_work_title_hint">Title</string>
+    <string name="update_category_off_title_hint">Title</string>
 
 
-    <!-- CategoryWork -->
+    <!-- Category -->
     <string name="title_activity_category_work">Categories (Work)</string>
     <string name="title_activity_category_work_add">Add Category (Work)</string>
     <string name="title_activity_category_work_update">Update Category (Work)</string>

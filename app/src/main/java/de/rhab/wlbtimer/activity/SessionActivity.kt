@@ -1,6 +1,5 @@
 package de.rhab.wlbtimer.activity
 
-import android.app.ProgressDialog.show
 import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.Snackbar
@@ -10,7 +9,6 @@ import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.helper.ItemTouchHelper
 import android.util.Log
-import android.widget.Toast
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
@@ -18,7 +16,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import de.rhab.wlbtimer.R
 import de.rhab.wlbtimer.adapter.SessionAdapter
-import de.rhab.wlbtimer.fragment.SessionBottomSheetFragment
 import de.rhab.wlbtimer.model.Session
 import de.rhab.wlbtimer.model.WlbUser
 
@@ -66,7 +63,7 @@ class SessionActivity : AppCompatActivity() {
         mAdapter = SessionAdapter(options)
 
         val recyclerView = findViewById<RecyclerView>(R.id.session_recycler_view)
-        recyclerView.setHasFixedSize(true)
+        recyclerView.setHasFixedSize(true)  // ToDo(frennkie) fixed!? yes or no
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = mAdapter
 
@@ -84,7 +81,7 @@ class SessionActivity : AppCompatActivity() {
                 mBuilder.setMessage("Are you sure you want to delete this entry? This can not be undone!")
                 mBuilder.setNeutralButton(R.string.session_cancel_delete) { _, _ ->
                     Log.d(TAG, "canceled swipe delete")
-                    mAdapter.notifyItemChanged(viewHolder.adapterPosition)
+                    mAdapter.notifyItemChanged(viewHolder.adapterPosition)  // ToDo(frennkie) this is "costly"
                 }
                 mBuilder.setPositiveButton(R.string.session_confirm_delete) { _, _ ->
                     Log.d(TAG, "deleted by swipe")

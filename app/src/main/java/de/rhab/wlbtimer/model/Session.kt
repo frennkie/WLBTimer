@@ -12,11 +12,12 @@ import kotlin.math.floor
 @IgnoreExtraProperties
 data class Session(
         var objectId: String? = null,
-        var category: CategoryWork? = null,
+        var category: Category? = null,
         var tsStartForward: Long = 0,  // is this of any use after switch to Firestore?!
         var tsStartReverse: Long = 0,  // is this of any use after switch to Firestore?!
         var tsStart: String? = null,
         var tsEnd: String? = null,
+        var note: String? = null,
         var allDay: Boolean = false,
         var finished: Boolean = false,
 
@@ -33,6 +34,7 @@ data class Session(
                     "tsStartReverse" to 1 - fromDefaultStr(tsStart!!)!!.toEpochSecond(),
                     "tsStart" to tsStart,
                     "tsEnd" to tsEnd,
+                    "note" to note,
                     "allDay" to allDay,
                     "finished" to finished,
                     "breaks" to breaks!!.map(Break::toMap)
@@ -44,6 +46,7 @@ data class Session(
                     "tsStartReverse" to 1 - fromDefaultStr(tsStart!!)!!.toEpochSecond(),
                     "tsStart" to tsStart,
                     "tsEnd" to tsEnd,
+                    "note" to note,
                     "allDay" to allDay,
                     "finished" to finished
             )
@@ -200,6 +203,7 @@ data class Session(
         private const val TAG = "Session"
 
         const val FBP = "sessions"
+
         const val FBP_SESSION_RUNNING = "session-running"
 
         fun getZonedDateTimeNow(): ZonedDateTime {

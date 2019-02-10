@@ -49,19 +49,19 @@
         </activity>
 
         <activity
-            android:name=".activity.CategoryNonWorkActivity"
-            android:label="@string/title_activity_category_non_work">
+            android:name=".activity.CategoryOffActivity"
+            android:label="@string/title_activity_category_off">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="de.rhab.wlbtimer.activity.MainActivity" />
         </activity>
 
         <activity
-            android:name=".activity.CategoryNonWorkUpdateActivity"
-            android:label="@string/title_activity_category_non_work_add">
+            android:name=".activity.CategoryOffUpdateActivity"
+            android:label="@string/title_activity_category_off_add">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="de.rhab.wlbtimer.activity.CategoryNonWorkActivity" />
+                android:value="de.rhab.wlbtimer.activity.CategoryOffActivity" />
         </activity>
 
         <activity

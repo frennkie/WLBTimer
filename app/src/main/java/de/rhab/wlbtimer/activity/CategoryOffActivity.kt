@@ -8,18 +8,19 @@ import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.helper.ItemTouchHelper
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
+import com.firebase.ui.firestore.ObservableSnapshotArray
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import de.rhab.wlbtimer.R
-import de.rhab.wlbtimer.adapter.CategoryNonWorkAdapter
-import de.rhab.wlbtimer.model.CategoryNonWork
+import de.rhab.wlbtimer.adapter.CategoryOffAdapter
+import de.rhab.wlbtimer.model.Category
 import de.rhab.wlbtimer.model.WlbUser
 
-class CategoryNonWorkActivity : AppCompatActivity() {
+class CategoryOffActivity : AppCompatActivity() {
 
-    private lateinit var mAdapter: CategoryNonWorkAdapter
+    private lateinit var mAdapter: CategoryOffAdapter
 
     private val db = FirebaseFirestore.getInstance()
 
@@ -33,19 +34,19 @@ class CategoryNonWorkActivity : AppCompatActivity() {
         // check user authentication - don't forget onStart() and onStop()
         mAuthListener = FirebaseAuth.AuthStateListener { auth ->
             if (auth.currentUser == null) {
-                startActivity(Intent(this@CategoryNonWorkActivity, SignInActivity::class.java))
+                startActivity(Intent(this@CategoryOffActivity, SignInActivity::class.java))
             }
         }
 
-        setContentView(R.layout.activity_category_non_work)
+        setContentView(R.layout.activity_category_off)
 
         val toolbar = findViewById<android.support.v7.widget.Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        val buttonAddCategoryNonWork = findViewById<FloatingActionButton>(R.id.button_add_category_non_work)
-        buttonAddCategoryNonWork.setOnClickListener {
-             startActivity(Intent(this@CategoryNonWorkActivity, CategoryNonWorkUpdateActivity::class.java))
+        val buttonAddCategoryOff = findViewById<FloatingActionButton>(R.id.button_add_category_off)
+        buttonAddCategoryOff.setOnClickListener {
+            startActivity(Intent(this@CategoryOffActivity, CategoryOffUpdateActivity::class.java))
         }
 
         setUpRecyclerView()
@@ -56,16 +57,17 @@ class CategoryNonWorkActivity : AppCompatActivity() {
         // sort Categories alphabetically by title
         val query = db.collection(WlbUser.FBP)
                 .document(mAuth.currentUser!!.uid)
-                .collection(CategoryNonWork.FBP)
+                .collection(Category.FBP)
+                .whereEqualTo("type", Category.TYPE_OFF)
                 .orderBy("title", Query.Direction.ASCENDING)
 
-        val options = FirestoreRecyclerOptions.Builder<CategoryNonWork>()
-                .setQuery(query, CategoryNonWork::class.java)
+        val options = FirestoreRecyclerOptions.Builder<Category>()
+                .setQuery(query, Category::class.java)
                 .build()
 
-        mAdapter = CategoryNonWorkAdapter(options)
+        mAdapter = CategoryOffAdapter(options)
 
-        val recyclerView = findViewById<RecyclerView>(R.id.category_non_work_recycler_view)
+        val recyclerView = findViewById<RecyclerView>(R.id.category_off_recycler_view)
         recyclerView.setHasFixedSize(true)
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = mAdapter
@@ -81,19 +83,31 @@ class CategoryNonWorkActivity : AppCompatActivity() {
             }
         }).attachToRecyclerView(recyclerView)
 
-        mAdapter.setOnItemClickListener(object : CategoryNonWorkAdapter.OnItemClickListener {
+        mAdapter.setOnItemClickListener(object : CategoryOffAdapter.OnItemClickListener {
             override fun onItemClick(documentSnapshot: DocumentSnapshot, position: Int) {
-                val categoryNonWork = documentSnapshot.toObject(CategoryNonWork::class.java)!!
+                val categoryOff = documentSnapshot.toObject(Category::class.java)!!
                 val id = documentSnapshot.id
-                val color = categoryNonWork.color
-                val title = categoryNonWork.title
+                val color = categoryOff.color
+                val title = categoryOff.title
 
                 // only serializable data can be sent to intent via putExtra
-                val intent = Intent(this@CategoryNonWorkActivity, CategoryNonWorkUpdateActivity::class.java)
+                val intent = Intent(this@CategoryOffActivity, CategoryOffUpdateActivity::class.java)
                 intent.putExtra("KEY", id)
                 intent.putExtra("COLOR", color)
                 intent.putExtra("TITLE", title)
                 startActivity(intent)
+            }
+
+            override fun onItemLongClick(snapshots: ObservableSnapshotArray<Category>,
+                                         documentSnapshot: DocumentSnapshot, position: Int) {
+                val batch = db.batch()
+
+                for (i in 0 until snapshots.count()) {
+                    batch.update(snapshots.getSnapshot(i).reference, "default", false)
+                }
+
+                batch.update(documentSnapshot.reference, "default", true)
+                batch.commit()
             }
         })
 
@@ -115,6 +129,6 @@ class CategoryNonWorkActivity : AppCompatActivity() {
 
     companion object {
 
-        private const val TAG = "CatNonWorkActivity"
+        private const val TAG = "CategoryOffActivity"
     }
 }

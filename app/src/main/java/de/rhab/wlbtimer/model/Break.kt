@@ -31,6 +31,8 @@ data class Break(
     }
 
     companion object {
+
         const val FBP = "breaks"
+
     }
 }

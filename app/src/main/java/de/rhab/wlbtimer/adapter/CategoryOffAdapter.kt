@@ -15,27 +15,27 @@ import de.rhab.wlbtimer.R
 import de.rhab.wlbtimer.model.Category
 
 
-class CategoryWorkAdapter(options: FirestoreRecyclerOptions<Category>) :
-        FirestoreRecyclerAdapter<Category, CategoryWorkAdapter.CategoryWorkHolder>(options) {
+class CategoryOffAdapter(options: FirestoreRecyclerOptions<Category>) :
+        FirestoreRecyclerAdapter<Category, CategoryOffAdapter.CategoryOffHolder>(options) {
 
     var listener: OnItemClickListener? = null
 
-    override fun onBindViewHolder(holder: CategoryWorkHolder, position: Int, model: Category) {
+    override fun onBindViewHolder(holder: CategoryOffHolder, position: Int, model: Category) {
         if (model.default) {
             holder.textViewDefaultIcon.visibility = View.VISIBLE
         } else {
             holder.textViewDefaultIcon.visibility = View.GONE
         }
         holder.textViewTitle.text = model.title
-        holder.textViewFactor.text = model.factor.toString()
         holder.textViewTimesUsed.text = "used: ${model.sessions.count()}"
         holder.cardLayout.setCardBackgroundColor(model.colorToInt())
+
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryWorkHolder {
-        val v = LayoutInflater.from(parent.context).inflate(R.layout.item_category_work,
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryOffHolder {
+        val v = LayoutInflater.from(parent.context).inflate(R.layout.item_category_off,
                 parent, false)
-        return CategoryWorkHolder(v)
+        return CategoryOffHolder(v)
     }
 
     fun deleteItem(position: Int) {
@@ -45,11 +45,10 @@ class CategoryWorkAdapter(options: FirestoreRecyclerOptions<Category>) :
                 .addOnFailureListener { e -> Log.w(TAG, "Error deleting document", e) }
     }
 
-    inner class CategoryWorkHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        var textViewDefaultIcon: TextView = itemView.findViewById(R.id.tv_category_work_default_icon)
-        var textViewTitle: TextView = itemView.findViewById(R.id.tv_category_work_title)
-        var textViewFactor: TextView = itemView.findViewById(R.id.tv_category_work_factor)
-        var textViewTimesUsed: TextView = itemView.findViewById(R.id.tv_category_work_times_used)
+    inner class CategoryOffHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        var textViewDefaultIcon: TextView = itemView.findViewById(R.id.tv_category_off_default_icon)
+        var textViewTitle: TextView = itemView.findViewById(R.id.tv_category_off_title)
+        var textViewTimesUsed: TextView = itemView.findViewById(R.id.tv_category_off_times_used)
         var cardLayout: CardView = itemView.findViewById(R.id.card_view)
 
         init {
@@ -80,6 +79,6 @@ class CategoryWorkAdapter(options: FirestoreRecyclerOptions<Category>) :
     }
 
     companion object {
-        private const val TAG = "CatWorkAdapter"
+        private const val TAG = "CategoryOffAdapter"
     }
 }

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activity.CategoryNonWorkUpdateActivity">
+    tools:context=".activity.CategoryOffUpdateActivity">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/app_bar"
@@ -28,10 +28,10 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior" >
 
         <EditText
-            android:id="@+id/category_non_work_update_title"
+            android:id="@+id/category_off_update_title"
             android:layout_width="276dp"
             android:layout_height="wrap_content"
-            android:hint="@string/update_category_non_work_title_hint"
+            android:hint="@string/update_category_off_title_hint"
             android:importantForAutofill="no"
             android:inputType="text"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"

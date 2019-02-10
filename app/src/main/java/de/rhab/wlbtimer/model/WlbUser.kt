@@ -15,6 +15,8 @@ data class WlbUser(
     }
 
     companion object {
+
         const val FBP = "users"
+
     }
 }

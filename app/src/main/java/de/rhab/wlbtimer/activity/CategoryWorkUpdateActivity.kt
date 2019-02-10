@@ -15,7 +15,7 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.larswerkman.holocolorpicker.ColorPicker
 import de.rhab.wlbtimer.R
-import de.rhab.wlbtimer.model.CategoryWork
+import de.rhab.wlbtimer.model.Category
 import de.rhab.wlbtimer.model.Session
 import de.rhab.wlbtimer.model.WlbUser
 
@@ -52,25 +52,25 @@ class CategoryWorkUpdateActivity : AppCompatActivity() {
         var mColor = intent.getStringExtra("COLOR") ?: "#A89AAF"
 
 
-        var mCategoryWork: CategoryWork? = null
+        var mCategory: Category? = null
 
         val userRef = db.collection(WlbUser.FBP).document(mAuth.currentUser!!.uid)
 
         if (mId == null) {
             setTitle(R.string.title_activity_category_work_add)
-            Log.d(TAG, "asked to add new CategoryWork")
-            mCategoryWorkRef = userRef.collection(CategoryWork.FBP).document()
+            Log.d(TAG, "asked to add new Category")
+            mCategoryWorkRef = userRef.collection(Category.FBP).document()
 
         } else {
             setTitle(R.string.title_activity_category_work_update)
-            Log.d(TAG, "asked to edit CategoryWork with key: $mId")
-            mCategoryWorkRef = userRef.collection(CategoryWork.FBP).document(mId)
+            Log.d(TAG, "asked to edit Category with key: $mId")
+            mCategoryWorkRef = userRef.collection(Category.FBP).document(mId)
 
             mCategoryWorkRef.get()
                     .addOnSuccessListener { documentSnapshot ->
                         if (documentSnapshot != null) {
-                            mCategoryWork = documentSnapshot.toObject(CategoryWork::class.java)
-                            Log.d(TAG, "found: $mCategoryWork")
+                            mCategory = documentSnapshot.toObject(Category::class.java)
+                            Log.d(TAG, "found: $mCategory")
                         } else {
                             Log.w(TAG, "No such document")
                         }
@@ -81,8 +81,8 @@ class CategoryWorkUpdateActivity : AppCompatActivity() {
                     }
         }
 
-        if (mCategoryWork == null) {
-            mCategoryWork = CategoryWork()
+        if (mCategory == null) {
+            mCategory = Category()
         }
 
         val editTextTitle = findViewById<EditText>(R.id.category_work_update_title)
@@ -116,10 +116,10 @@ class CategoryWorkUpdateActivity : AppCompatActivity() {
         buttonSaveCategoryWork.setOnClickListener { _ ->
 
             if (mId == null) {
-                Log.d(TAG, "add CategoryWork")
+                Log.d(TAG, "add Category")
                 Toast.makeText(this, "Adding...", Toast.LENGTH_SHORT).show()
             } else {
-                Log.d(TAG, "update CategoryWork")
+                Log.d(TAG, "update Category")
                 Toast.makeText(this, "Updating...", Toast.LENGTH_SHORT).show()
             }
 
@@ -129,19 +129,19 @@ class CategoryWorkUpdateActivity : AppCompatActivity() {
                 editTextFactor.text.toString().toDouble()
             }
 
-            mCategoryWork!!.objectId = mCategoryWorkRef.id
-            mCategoryWork!!.title = editTextTitle.text.toString()
-            mCategoryWork!!.color = mColor
-            mCategoryWork!!.factor = mNewFactor
+            mCategory!!.objectId = mCategoryWorkRef.id
+            mCategory!!.title = editTextTitle.text.toString()
+            mCategory!!.color = mColor
+            mCategory!!.factor = mNewFactor
 
             val batch = db.batch()
-            batch.set(mCategoryWorkRef, mCategoryWork!!)
-            batch.update(userRef, "CategoryWork-last", mCategoryWorkRef.id)
+            batch.set(mCategoryWorkRef, mCategory!!)
+            batch.update(userRef, "category-last", mCategoryWorkRef.id)
 
-            mCategoryWork?.sessions?.forEach { session ->
+            mCategory?.sessions?.forEach { session ->
                 batch.update(userRef.collection(Session.FBP).document(session),
-                        CategoryWork.FBP_SHORT,
-                        mCategoryWork!!.toMapNoSessions())
+                        Category.FBP,
+                        mCategory!!.toMapNoSessions())
             }
 
             batch.commit()

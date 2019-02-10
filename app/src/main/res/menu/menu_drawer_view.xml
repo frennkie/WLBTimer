@@ -1,19 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <group
-        android:id="@+id/grpid1"
-        android:checkableBehavior="single">
-
-        <item
-            android:id="@+id/nav_home"
-            android:icon="@drawable/ic_home_black_24dp"
-            android:title="@string/drawer_nav_home" />
-    </group>
-
 
     <group
-        android:id="@+id/grpid2"
+        android:id="@+id/grpid10"
         android:checkableBehavior="single">
 
         <item
@@ -22,58 +12,65 @@
             android:title="@string/drawer_nav_sessions" />
     </group>
 
+    <item android:title="@string/drawer_nav_categories">
+        <menu>
+            <group
+                android:id="@+id/grpid20"
+                android:checkableBehavior="single">
 
+                <item
+                    android:id="@+id/nav_category_work"
+                    android:icon="@drawable/ic_location_city_white_24dp"
+                    android:title="@string/drawer_nav_category_work" />
+                <item
+                    android:id="@+id/nav_category_off"
+                    android:icon="@drawable/ic_golf_course_black_24dp"
+                    android:title="@string/drawer_nav_category_off" />
 
-    <group
-        android:id="@+id/grpid3"
-        android:checkableBehavior="single">
+            </group>
+        </menu>
+    </item>
 
-        <item
-            android:id="@+id/nav_break"
-            android:icon="@drawable/ic_free_breakfast_black_24dp"
-            android:title="@string/drawer_nav_break" />
-        <item
-            android:id="@+id/nav_category_work"
-            android:icon="@drawable/ic_location_city_white_24dp"
-            android:title="@string/drawer_nav_category_work" />
-        <item
-            android:id="@+id/nav_category_non_work"
-            android:icon="@drawable/ic_golf_course_black_24dp"
-            android:title="@string/drawer_nav_category_non_work" />
+    <item android:title="Dev">
+        <menu>
+            <group
+                android:id="@+id/grpid30"
+                android:checkableBehavior="single">
 
-        <item
-            android:id="@+id/nav_category_note"
-            android:icon="@drawable/ic_note_black_24dp"
-            android:title="@string/drawer_nav_note" />
-    </group>
+                <item
+                    android:id="@+id/nav_break"
+                    android:icon="@drawable/ic_free_breakfast_black_24dp"
+                    android:title="@string/drawer_nav_break" />
 
-    <group
-        android:id="@+id/grpid4"
-        android:checkableBehavior="single">
+                <item
+                    android:id="@+id/nav_category_note"
+                    android:icon="@drawable/ic_note_black_24dp"
+                    android:title="@string/drawer_nav_note" />
 
-        <item
-            android:id="@+id/nav_report"
-            android:icon="@drawable/ic_insert_chart_black_24dp"
-            android:title="@string/drawer_nav_report" />
-    </group>
+                <item
+                    android:id="@+id/nav_report"
+                    android:icon="@drawable/ic_insert_chart_black_24dp"
+                    android:title="@string/drawer_nav_report" />
+            </group>
+        </menu>
+    </item>
 
-    <group
-        android:id="@+id/grpid5"
-        android:checkableBehavior="single">
+    <item android:title="Foobar">
+        <menu>
+            <group
+                android:id="@+id/grpid40"
+                android:checkableBehavior="single">
 
-        <item
-            android:id="@+id/nav_settings"
-            android:icon="@drawable/ic_settings_black_24dp"
-            android:title="@string/drawer_nav_settings" />
-    </group>
+                <item
+                    android:id="@+id/nav_settings"
+                    android:icon="@drawable/ic_settings_black_24dp"
+                    android:title="@string/drawer_nav_settings" />
+                <item
+                    android:id="@+id/nav_sign_out"
+                    android:icon="@drawable/ic_exit_to_app_black_24dp"
+                    android:title="@string/drawer_nav_sign_out" />
+            </group>
+        </menu>
+    </item>
 
-    <group
-        android:id="@+id/grpid6"
-        android:checkableBehavior="single">
-
-        <item
-            android:id="@+id/nav_sign_out"
-            android:icon="@drawable/ic_exit_to_app_black_24dp"
-            android:title="@string/drawer_nav_sign_out" />
-    </group>
 </menu>

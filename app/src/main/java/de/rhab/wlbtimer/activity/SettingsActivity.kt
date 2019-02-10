@@ -190,7 +190,7 @@ class SettingsActivity : AppCompatPreferenceActivity() {
 //
 //                        for (postSnapshot in dataSnapshot.children) {
 //                            // TODO: handle the post
-//                            val value = postSnapshot.getValue(CategoryWork::class.java)
+//                            val value = postSnapshot.getValue(Category::class.java)
 //                            if (value != null) {
 //                                Log.d("FooBar0", "FooBar Value is: $value")
 //                                categoryWorkEntries = categoryWorkEntries!!.plus(value.title.toString())

@@ -12,10 +12,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ListPopupWindow
-import android.widget.SimpleAdapter
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
@@ -23,7 +20,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import de.rhab.wlbtimer.R
 import de.rhab.wlbtimer.model.Break
-import de.rhab.wlbtimer.model.CategoryWork
+import de.rhab.wlbtimer.model.Category
 import de.rhab.wlbtimer.model.Session
 import de.rhab.wlbtimer.model.WlbUser
 import org.threeten.bp.ZonedDateTime
@@ -35,61 +32,102 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
 
     private val db = FirebaseFirestore.getInstance()
 
-    private lateinit var mCategoryWorkColRef: CollectionReference
+    private lateinit var mCategoryColRef: CollectionReference
 
     private lateinit var mSessionRef: DocumentReference
 
-    private var mCategoryWorkList = HashMap<String, CategoryWork>()
+    private var mType = Category.TYPE_WORK
 
     private lateinit var numberList: ListPopupWindow
 
-    private var listCategoryWork = ArrayList<Map<String, String>>()
+    private var mCategoryList = HashMap<String, Category>()
+
+    private var mArrayListCategory = ArrayList<Map<String, String>>()
+
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val rootView = inflater.inflate(R.layout.fragment_bottom_sheet_session, container, false)
 
+        val llStart = rootView.findViewById<LinearLayout>(R.id.linear_layout_start)
+        val tvStartSymbol = rootView.findViewById<TextView>(R.id.tv_btn_start_symbol)
+        val tvStartSymbolAllDay = rootView.findViewById<TextView>(R.id.tv_btn_start_symbol_all_day)
         val tvStartDate = rootView.findViewById<TextView>(R.id.tv_btn_start_date)
         val tvStartTime = rootView.findViewById<TextView>(R.id.tv_btn_start_time)
+
+        val llEnd = rootView.findViewById<LinearLayout>(R.id.linear_layout_end)
         val tvEndDate = rootView.findViewById<TextView>(R.id.tv_btn_end_date)
         val tvEndTime = rootView.findViewById<TextView>(R.id.tv_btn_end_time)
+
+        val llBreaks = rootView.findViewById<LinearLayout>(R.id.linear_layout_breaks)
         val tvBreaks = rootView.findViewById<TextView>(R.id.tv_btn_breaks)
+
+        val llNote = rootView.findViewById<LinearLayout>(R.id.linear_layout_note)
+        val tvNote = rootView.findViewById<TextView>(R.id.tv_btn_note)
+
+        val llDuration = rootView.findViewById<LinearLayout>(R.id.linear_layout_duration)
         val tvDuration = rootView.findViewById<TextView>(R.id.tv_btn_duration)
         val tvCategory = rootView.findViewById<TextView>(R.id.tv_btn_category)
 
+        val llCategory = rootView.findViewById<LinearLayout>(R.id.linear_layout_category)
         val tvCategoryIcon = rootView.findViewById<TextView>(R.id.tv_category_icon)
         val mTvCategoryIconBackground = tvCategoryIcon.background as GradientDrawable
 
         val tvRemoveSession = rootView.findViewById<TextView>(R.id.tv_btn_remove_session)
+
+        // first hide all fields until data is loaded (and clear which should be shown)
+        // Start has two different Symbols (depending on AllDay or not)
+        llStart.visibility = View.GONE
+        tvStartSymbol.visibility = View.GONE
+        tvStartSymbolAllDay.visibility = View.GONE
+        tvStartDate.visibility = View.GONE
+        tvStartTime.visibility = View.GONE
+        llEnd.visibility = View.GONE
+        llBreaks.visibility = View.GONE
+        llDuration.visibility = View.GONE
+        llNote.visibility = View.VISIBLE
+        llCategory.visibility = View.GONE
 
         // Variable to hold existing or new Session Object
         var mSession: Session? = null
 
 
         val userRef = db.collection(WlbUser.FBP).document(mAuth.currentUser!!.uid)
+        mCategoryColRef = userRef.collection(Category.FBP)
+
         // get passed in Session ID
         val mId = arguments?.getString(ARG_SESSION_ID)
 
+        if (arguments?.getString(ARG_SESSION_TYPE) != null) {
+            mType = arguments?.getString(ARG_SESSION_TYPE)!!
+        }
+
         if (mId == null) {
-            Log.i(TAG, "adding new session")
+            Log.i(TAG, "adding new session (Type: $mType)")
+
             mSessionRef = userRef.collection(Session.FBP).document()
 
             mSession = Session()
             mSession.objectId = mSessionRef.id
-            mSession.allDay = false
+
+            mSession.allDay = when (mType) {
+                Category.TYPE_OFF -> true
+                Category.TYPE_WORK -> false
+                else -> false
+            }
+
             mSession.finished = true
+            mSession.note = null
             mSession.tsStart = Session.getZonedDateTimeNow().minusHours(8).toString()
             mSession.tsEnd = Session.getZonedDateTimeNow().toString()
 
-            /* ToDO(frennkie) makes no sense.. would at least need to check for length of session
-                as a 60min session won't have a 45min break.. Also this is most likely not the
-                right place for this logic
 
-                how to get full details from CategoryWork here?! :-/
+            /* ToDO(frennkie) makes no sense.. working on this in onComplete block below
+                how to get full details from Category here?! :-/
                 val sharedPref = PreferenceManager.getDefaultSharedPreferences(this.context)
                 val defaultCategoryWork = sharedPref.getString("default_category_work", null)
                 if (defaultCategoryWork != null) {
                     Log.d(TAG, "setting default category work from prefs")
-                    mSession.category = CategoryWork(defaultCategoryWork)
+                    mSession.category = Category(defaultCategoryWork)
                 }
             */
 
@@ -110,99 +148,169 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
             mSessionRef.set(mSession.toMap())
 
         } else {
-            Log.d(TAG, "using existing session for mId: $mId")
+            Log.d(TAG, "using existing session for mId: $mId (Type: $mType)")
             mSessionRef = userRef.collection(Session.FBP).document(mId)
         }
 
         Log.d(TAG, "mSessionRef is now: ${mSessionRef.path}")
 
 
-        listCategoryWork = ArrayList()
+        // get Categories (either Work or Off type)
+        mArrayListCategory = ArrayList()
+        mCategoryColRef
+                .whereEqualTo("type", mType)
+                .get()
+                .addOnFailureListener { e ->
+                    Log.d(TAG, "get failed with ", e)
+                }
+                .addOnSuccessListener { docSnapshotCategory ->
+                    Log.d(TAG, "Number of category ($mType) entries: ${docSnapshotCategory.count()}")
 
-        // get Category Work Object
-        mCategoryWorkColRef = userRef.collection(CategoryWork.FBP)
-        mCategoryWorkColRef.get()
-                .addOnSuccessListener { result ->
-                    Log.d(TAG, "Number of category_work entries: ${result.count()}")
-
-                    for (document in result) {
+                    for (document in docSnapshotCategory) {
                         Log.d(TAG, document.id + " => " + document.data)
-                        val mCategoryWork = document.toObject(CategoryWork::class.java)
+                        val mCategory = document.toObject(Category::class.java)
 
-                        mCategoryWorkList[mCategoryWork.objectId] = mCategoryWork
+                        mCategoryList[mCategory.objectId] = mCategory
 
                         val tran = LinkedHashMap<String, String>()
-                        tran["title"] = mCategoryWork.title
-                        tran["objectId"] = mCategoryWork.objectId
-                        listCategoryWork.add(tran)
+                        tran["title"] = mCategory.title
+                        tran["objectId"] = mCategory.objectId
+                        mArrayListCategory.add(tran)
 
                     }
 
-                    Log.d(TAG, "listCategoryWork: $listCategoryWork")
+                    Log.d(TAG, "listCategory ($mType): $mArrayListCategory")
 
-                }
-                .addOnFailureListener { e ->
-                    Log.d(TAG, "get failed with ", e)
-                }
 
-        // get Session Object
-        mSessionRef.get()
-                .addOnSuccessListener { documentSnapshot ->
-                    if (documentSnapshot != null) {
-                        mSession = documentSnapshot.toObject(Session::class.java)
-                        Log.d(TAG, "found: $mSession")
-                    } else {
-                        Log.w(TAG, "No such document")
-                    }
+                    // get Session Object - this has to wait for Categories to be loaded
+                    mSessionRef.get()
+                            .addOnFailureListener { e ->
+                                Log.d(TAG, "get failed with ", e)
+                            }
+                            .addOnSuccessListener { documentSnapshot ->
+                                if (documentSnapshot != null) {
+                                    mSession = documentSnapshot.toObject(Session::class.java)
+                                    Log.d(TAG, "found: $mSession")
+                                } else {
+                                    Log.w(TAG, "No such document")
+                                }
 
-                    Log.d(TAG, "foobar3: ${mSession?.toMap()}")
-                    if (mSession != null) {
+                                if (mSession != null) {
 
-                        if (mSession!!.tsStart != null) {
-                            tvStartDate.text = mSession!!.getDateStart()
-                            tvStartTime.text = mSession!!.getTimeZonedStart()
-                        } else {
-                            tvStartDate.text = "..."
-                            tvStartTime.text = "..."
-                        }
+                                    if (mSession!!.allDay) {
+                                        llStart.visibility = View.VISIBLE
+                                        tvStartSymbol.visibility = View.GONE
+                                        tvStartSymbolAllDay.visibility = View.VISIBLE
+                                        tvStartDate.visibility = View.VISIBLE
+                                        tvStartTime.visibility = View.GONE
 
-                        if (mSession!!.tsEnd != null) {
-                            tvEndDate.text = mSession!!.getDateEnd()
-                            tvEndTime.text = mSession!!.getTimeZonedEnd()
-                        } else {
-                            tvEndDate.text = "..."
-                            tvEndTime.text = "..."
-                        }
+                                        llEnd.visibility = View.GONE
+                                        llBreaks.visibility = View.GONE
+                                        llDuration.visibility = View.GONE
+                                        llNote.visibility = View.VISIBLE
+                                        llCategory.visibility = View.GONE
+                                    } else {
+                                        llStart.visibility = View.VISIBLE
+                                        tvStartSymbol.visibility = View.VISIBLE
+                                        tvStartSymbolAllDay.visibility = View.GONE
+                                        tvStartDate.visibility = View.VISIBLE
+                                        tvStartTime.visibility = View.VISIBLE
 
-                        tvBreaks.text = mSession!!.getTotalBreakTime()
+                                        llEnd.visibility = View.VISIBLE
+                                        llBreaks.visibility = View.VISIBLE
+                                        llDuration.visibility = View.VISIBLE
+                                        llNote.visibility = View.VISIBLE
+                                        llCategory.visibility = View.VISIBLE
+                                    }
 
-                        val mCategoryWork = mSession!!.category
-                        Log.d(TAG, "result $mCategoryWork")
-                        if (mCategoryWork != null) {
-                            tvCategory.text = mCategoryWork.title
+                                    if (mSession!!.tsStart != null) {
+                                        tvStartDate.text = mSession!!.getDateStart()
+                                        tvStartTime.text = mSession!!.getTimeZonedStart()
+                                    } else {
+                                        tvStartDate.text = "..."
+                                        tvStartTime.text = "..."
+                                    }
 
-                           tvCategoryIcon.text = mCategoryWork.title.substring(0, 1)
-                            val mColor = Color.parseColor(mCategoryWork.color)
-                            mTvCategoryIconBackground.setColor(mColor)
+                                    if (mSession!!.tsEnd != null) {
+                                        tvEndDate.text = mSession!!.getDateEnd()
+                                        tvEndTime.text = mSession!!.getTimeZonedEnd()
+                                    } else {
+                                        tvEndDate.text = "..."
+                                        tvEndTime.text = "..."
+                                    }
 
-                            tvDuration.text = mSession!!.getDurationWeightedExcludingBreaks(mFactor = mCategoryWork.factor)
-                        } else {
-                            tvCategory.text = "N/A"
+                                    tvBreaks.text = mSession!!.getTotalBreakTime()
 
-                            tvCategoryIcon.text = "-"
-                            val mColor = Color.parseColor("#666666")
-                            mTvCategoryIconBackground.setColor(mColor)
+                                    if (mSession!!.note != null) {
+                                        tvNote.text = mSession!!.note
+                                    } else {
+                                        tvNote.text = "N/A"  // ToDo(frennkie) special format?!
+                                    }
 
-                            tvDuration.text = mSession!!.getDurationWeightedExcludingBreaks()
-                        }
+                                    val mCategoryWork = mSession!!.category
+                                    Log.d(TAG, "result $mCategoryWork")
+                                    if (mCategoryWork != null) {
+                                        tvCategory.text = mCategoryWork.title
 
-                    }
+                                        tvCategoryIcon.text = mCategoryWork.title.substring(0, 1)
+                                        val mColor = Color.parseColor(mCategoryWork.color)
+                                        mTvCategoryIconBackground.setColor(mColor)
 
-                }
-                .addOnFailureListener { e ->
-                    Log.d(TAG, "get failed with ", e)
-                }
+                                        tvDuration.text = mSession!!
+                                                .getDurationWeightedExcludingBreaks(mFactor = mCategoryWork.factor)
+                                    } else {
 
+                                        if (mCategoryList.isEmpty()) {
+                                            // User has no Category defined for this Tpe
+                                            Log.w(TAG, "User has no Categories defined for type: $mType")
+                                            tvCategory.text = "N/A"
+
+                                            tvCategoryIcon.text = "-"
+                                            val mColor = Color.parseColor("#666666")
+                                            mTvCategoryIconBackground.setColor(mColor)
+
+                                            tvDuration.text = mSession!!.getDurationWeightedExcludingBreaks()
+                                        } else {
+                                            for (it in mCategoryList.values) {
+                                                if (it.default) {
+                                                    // set on instance
+                                                    mSession!!.category = it
+
+                                                    // upload toFirestore
+                                                    val batch = db.batch()
+                                                    batch.update(mSessionRef, Category.FBP, mSession!!.category?.toMapNoSessions())
+
+                                                    // ToDo(frennkie) also store on Session?!
+                                                    batch.commit()
+                                                            .addOnFailureListener { e ->
+                                                                Log.w(TAG, "Failed to set/update Category! Error: ", e)
+                                                            }
+                                                            .addOnSuccessListener { _ ->
+                                                                Log.d(TAG, "Category set/updated")
+                                                            }
+
+                                                    // display
+                                                    tvCategory.text = it.title
+
+                                                    tvCategoryIcon.text = it.title.substring(0, 1)
+                                                    val mColor = Color.parseColor(it.color)
+                                                    mTvCategoryIconBackground.setColor(mColor)
+
+                                                    tvDuration.text = mSession!!
+                                                            .getDurationWeightedExcludingBreaks(mFactor = it.factor)
+                                                    break
+                                                }
+                                            }
+
+                                        }
+
+                                    }
+
+                                }
+
+                            }  // End of mSessionRef.get()
+
+                }  // End of mCategoryColRef.get()
 
         //handle clicks
         tvStartDate.setOnClickListener {
@@ -321,6 +429,30 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
 
         }
 
+        tvNote.setOnClickListener {
+            mBottomSheetListener!!.onOptionClick("tvNote clicked...")
+            Log.d(TAG, "tvNote clicked...")
+
+            val mBuilder = AlertDialog.Builder(context!!)
+            val mNoteInflater = this.layoutInflater
+            val dialogView = mNoteInflater.inflate(R.layout.custom_dialog, null)
+            mBuilder.setView(dialogView)
+
+            val etNote = dialogView.findViewById(R.id.edit1) as EditText
+            etNote.setText(mSession!!.note, TextView.BufferType.EDITABLE)
+
+            mBuilder.setTitle("Update Note")
+            mBuilder.setNeutralButton("cancel") { _, _ -> }
+            mBuilder.setPositiveButton("Save") { _, _ ->
+                tvNote.text = etNote.text.toString()
+                mSessionRef.update("note", etNote.text.toString())
+            }
+
+            val mDialog = mBuilder.create()
+            mDialog.show()
+
+        }
+
         tvCategory.setOnClickListener {
             mBottomSheetListener!!.onOptionClick("tvCategory clicked...")
             Log.d(TAG, "tvCategory clicked...")
@@ -328,7 +460,7 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
             numberList = ListPopupWindow(context!!)
             numberList.anchorView = tvCategory
 
-            val adapter = SimpleAdapter(context, listCategoryWork,
+            val adapter = SimpleAdapter(context, mArrayListCategory,
                     android.R.layout.simple_spinner_dropdown_item,
                     arrayOf("title"),
                     intArrayOf(android.R.id.text1))
@@ -336,56 +468,62 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
             numberList.setAdapter(adapter)
 
 
+            // DRY attempt
+//                listCategory = listCategoryWork
+//                mCategoryList = mCategoryWorkList
+
+
             numberList.setOnItemClickListener { _, _, position, _ ->
-                Log.d(TAG, "listCW: $listCategoryWork; p: $position; listCW[p]:${listCategoryWork[position]}")
-                val map = listCategoryWork[position]
-                val mCategoryWorkObjectId = map["objectId"]!!
-                val mCategoryWork = mCategoryWorkList[mCategoryWorkObjectId]!!
-                tvCategory.text = mCategoryWork.title
+                Log.d(TAG, "listCW: $mArrayListCategory; p: $position; listCW[p]:${mArrayListCategory[position]}")
+                val map = mArrayListCategory[position]
+                val mCategoryObjectId = map["objectId"]!!
+                val mCategory = mCategoryList[mCategoryObjectId]!!
+                tvCategory.text = mCategory.title
 
 
-                tvCategoryIcon.text = mCategoryWork.title.substring(0, 1)
-                val mColor = Color.parseColor(mCategoryWork.color)
+                tvCategoryIcon.text = mCategory.title.substring(0, 1)
+                val mColor = Color.parseColor(mCategory.color)
                 mTvCategoryIconBackground.setColor(mColor)
 
 
-                // store possible old CategoryWork objectId
-                var mOldCatWorkObjectId: String? = null
-                if (mSession!!.category?.objectId != null) mOldCatWorkObjectId = mSession!!.category!!.objectId
+                // store possible old Category objectId
+                var mOldCategoryObjectId: String? = null
+                if (mSession!!.category?.objectId != null) mOldCategoryObjectId = mSession!!.category!!.objectId
 
                 val batch = db.batch()
 
-                mSession!!.category = mCategoryWork
-                batch.update(mSessionRef, CategoryWork.FBP_SHORT, mSession!!.category?.toMapNoSessions())
+                mSession!!.category = mCategory
+                batch.update(mSessionRef, Category.FBP, mSession!!.category?.toMapNoSessions())
 
-                // store an array on the CategoryWork instance of every session where the instance is used
-                val mCatWorkRef = userRef.collection(CategoryWork.FBP).document(mCategoryWorkObjectId)
-                batch.update(mCatWorkRef, Session.FBP, FieldValue.arrayUnion(mSession!!.objectId))
+                // store an array on the Category instance of every session where the instance is used
+                val mCategoryRef = userRef.collection(Category.FBP).document(mCategoryObjectId)
+                batch.update(mCategoryRef, Session.FBP, FieldValue.arrayUnion(mSession!!.objectId))
 
                 // check if entry has an old category
-                if (mOldCatWorkObjectId != null) {
+                if (mOldCategoryObjectId != null) {
                     // if a different category was selected remove Session entry from old category
-                    if (mOldCatWorkObjectId != mCategoryWorkObjectId) {
-                        batch.update(userRef.collection(CategoryWork.FBP).document(mOldCatWorkObjectId),
+                    if (mOldCategoryObjectId != mCategoryObjectId) {
+                        batch.update(userRef.collection(Category.FBP).document(mOldCategoryObjectId),
                                 Session.FBP, FieldValue.arrayRemove(mSession!!.objectId))
-                        Log.d(TAG, "removed from array on Category Work")
+                        Log.d(TAG, "removed from array on Category")
                     }
                 }
 
                 // execute bulk update
                 batch.commit()
                         .addOnFailureListener { e ->
-                            Log.w(TAG, "Failed to start new session! Error: ", e)
+                            Log.w(TAG, "Failed to set/update Category! Error: ", e)
                             // this catches the error.. may be do something with this?! UI does reflect the
                             // intended change until refresh!
                         }
                         .addOnSuccessListener { _ ->
-                            Log.d(TAG, "updateChildren done")
+                            Log.d(TAG, "Category set/updated")
                         }
 
                 numberList.dismiss()
             }
             numberList.show()
+
         }
 
         tvRemoveSession.setOnClickListener {
@@ -471,6 +609,8 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
         private const val TAG = "SessionBottomDialogFrag"
 
         const val ARG_SESSION_ID = "SESSION_ID"
+
+        const val ARG_SESSION_TYPE = "SESSION_TYPE"
 
         private var mBottomSheetListener: BottomSheetListener? = null
 
