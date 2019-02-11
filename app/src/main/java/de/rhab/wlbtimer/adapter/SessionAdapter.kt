@@ -35,6 +35,7 @@ open class SessionAdapter(options: FirestoreRecyclerOptions<Session>)
 
         } else {
             onBindViewHolderSessionTimed(holder, position, model)
+
         }
 
     }
@@ -47,6 +48,9 @@ open class SessionAdapter(options: FirestoreRecyclerOptions<Session>)
     }
 
     private fun onBindViewHolderSessionAllDay(holder: SessionHolder, position: Int, model: Session) {
+
+        holder.mTsEndView.visibility = View.GONE
+        holder.mTsDurationView.visibility = View.GONE
 
         val tsStartZonedDateTime = ZonedDateTime.parse(model.tsStart!!)!!
         val weekOfYear = tsStartZonedDateTime.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR)
@@ -76,12 +80,12 @@ open class SessionAdapter(options: FirestoreRecyclerOptions<Session>)
             holder.mTsStartView.text = ""
         }
 
-        holder.mTsEndView.visibility = View.GONE
-        holder.mTsDurationView.visibility = View.GONE
-
     }
 
     private fun onBindViewHolderSessionTimed(holder: SessionHolder, position: Int, model: Session) {
+
+        holder.mTsEndView.visibility = View.VISIBLE
+        holder.mTsDurationView.visibility = View.VISIBLE
 
         val tsStartZonedDateTime = ZonedDateTime.parse(model.tsStart!!)!!
         val weekOfYear = tsStartZonedDateTime.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR)

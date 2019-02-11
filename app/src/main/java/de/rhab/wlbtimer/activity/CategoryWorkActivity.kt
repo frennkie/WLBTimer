@@ -3,7 +3,6 @@ package de.rhab.wlbtimer.activity
 import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
-import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
@@ -18,6 +17,7 @@ import de.rhab.wlbtimer.R
 import de.rhab.wlbtimer.adapter.CategoryWorkAdapter
 import de.rhab.wlbtimer.model.Category
 import de.rhab.wlbtimer.model.WlbUser
+
 
 class CategoryWorkActivity : AppCompatActivity() {
 
@@ -102,13 +102,19 @@ class CategoryWorkActivity : AppCompatActivity() {
             }
             override fun onItemLongClick(snapshots: ObservableSnapshotArray<Category>,
                                          documentSnapshot: DocumentSnapshot, position: Int) {
+                val category = documentSnapshot.toObject(Category::class.java) ?: return
                 val batch = db.batch()
 
+                // set default to false for all entries
                 for (i in 0 until snapshots.count()) {
                     batch.update(snapshots.getSnapshot(i).reference, "default", false)
                 }
 
+                // set default to true on the selected entry
                 batch.update(documentSnapshot.reference, "default", true)
+                // additionally store copy on user document
+                batch.update(db.collection(WlbUser.FBP).document(mAuth.currentUser!!.uid),
+                        "default_" + Category.FBP + "_" + Category.TYPE_WORK, category.toMapNoSessions())
                 batch.commit()
             }
         })

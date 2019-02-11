@@ -100,13 +100,20 @@ class CategoryOffActivity : AppCompatActivity() {
 
             override fun onItemLongClick(snapshots: ObservableSnapshotArray<Category>,
                                          documentSnapshot: DocumentSnapshot, position: Int) {
+                val category = documentSnapshot.toObject(Category::class.java) ?: return
+
                 val batch = db.batch()
 
+                // set default to false for all entries
                 for (i in 0 until snapshots.count()) {
                     batch.update(snapshots.getSnapshot(i).reference, "default", false)
                 }
 
+                // set default to true on the selected entry
                 batch.update(documentSnapshot.reference, "default", true)
+                // additionally store copy on user document
+                batch.update(db.collection(WlbUser.FBP).document(mAuth.currentUser!!.uid),
+                        "default_" + Category.FBP + "_" + Category.TYPE_OFF, category.toMapNoSessions())
                 batch.commit()
             }
         })

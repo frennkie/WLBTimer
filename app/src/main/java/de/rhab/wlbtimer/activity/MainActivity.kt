@@ -18,7 +18,6 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.TextView
-import android.widget.Toast
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.auth.FirebaseAuth
@@ -51,6 +50,8 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
     private val db = FirebaseFirestore.getInstance()
 
     private lateinit var userRef: DocumentReference
+
+    private lateinit var mWlbUser: WlbUser
 
     private var mSessionRunningListener: ListenerRegistration? = null
 
@@ -294,6 +295,15 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
 
         }
 
+        // get user Document (get default values and other settings)
+        userRef.get()
+                .addOnFailureListener { e ->
+                    Log.d(TAG, "get failed with ", e)
+                }
+                .addOnSuccessListener { documentSnapshot ->
+                    mWlbUser = documentSnapshot.toObject(WlbUser::class.java)!!
+                }
+
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -412,25 +422,6 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
 
     }
 
-//    private fun addNewSessionSingleChoice() {
-//
-//        val listItems = arrayOf("Item 1", "Item 2", "Item 3")
-//        val mBuilder = AlertDialog.Builder(this)
-//        mBuilder.setTitle("Choose an item")
-//        mBuilder.setSingleChoiceItems(listItems, -1) { dialogInterface, i ->
-//            Log.i(TAG, listItems[i])
-//            dialogInterface.dismiss()
-//        }
-//        // Set the neutral/cancel button click listener
-//        mBuilder.setNeutralButton("Cancel") { dialog, _ ->
-//            // Do something when click the neutral button
-//            dialog.cancel()
-//        }
-//
-//        val mDialog = mBuilder.create()
-//        mDialog.show()
-//    }
-
     private fun startNewSession() {
         // get a new "push key" for document
         val mSessionRef = userRef.collection(Session.FBP).document()
@@ -445,14 +436,21 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
                 objectId = mSessionRef.id  // additionally store push key
         )
 
+        Log.d(TAG, "mSession: $mSession")
+
         val batch = db.batch()
 
         // store session-running
-        val mSessionRunning = HashMap<String, String>()
-        mSessionRunning[Session.FBP_SESSION_RUNNING] = mSessionRef.id
-        batch.set(userRef, mSessionRunning)
+        batch.update(userRef, Session.FBP_SESSION_RUNNING, mSessionRef.id)
 
         batch.set(mSessionRef, mSession.toMap())  // ToDo(frennkie) check
+
+
+        val defCategoryWork = mWlbUser.default_category_work
+        if (defCategoryWork != null) {
+            Log.d(TAG, "defCatW: $defCategoryWork")
+            batch.update(mSessionRef, Category.FBP, defCategoryWork.toMapNoSessions())
+        }
 
         batch.commit()
                 .addOnFailureListener { e ->

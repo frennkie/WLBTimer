@@ -101,58 +101,75 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
             mType = arguments?.getString(ARG_SESSION_TYPE)!!
         }
 
-        if (mId == null) {
-            Log.i(TAG, "adding new session (Type: $mType)")
-
-            mSessionRef = userRef.collection(Session.FBP).document()
-
-            mSession = Session()
-            mSession.objectId = mSessionRef.id
-
-            mSession.allDay = when (mType) {
-                Category.TYPE_OFF -> true
-                Category.TYPE_WORK -> false
-                else -> false
-            }
-
-            mSession.finished = true
-            mSession.note = null
-            mSession.tsStart = Session.getZonedDateTimeNow().minusHours(8).toString()
-            mSession.tsEnd = Session.getZonedDateTimeNow().toString()
-
-
-            /* ToDO(frennkie) makes no sense.. working on this in onComplete block below
-                how to get full details from Category here?! :-/
-                val sharedPref = PreferenceManager.getDefaultSharedPreferences(this.context)
-                val defaultCategoryWork = sharedPref.getString("default_category_work", null)
-                if (defaultCategoryWork != null) {
-                    Log.d(TAG, "setting default category work from prefs")
-                    mSession.category = Category(defaultCategoryWork)
+        // get user Document (get default values and other settings)
+        userRef.get()
+                .addOnFailureListener { e ->
+                    Log.d(TAG, "get failed with ", e)
                 }
-            */
+                .addOnSuccessListener { documentSnapshot ->
+                    val mWlbUser = documentSnapshot.toObject(WlbUser::class.java)!!
+                    val defBreak = mWlbUser.default_break ?: 60 * 45
+                    val defCategoryOff = mWlbUser.default_category_off
+                    val defCategoryWork = mWlbUser.default_category_work
 
-            val mDefaultBreak = Break(
-                    comment = "Default Break",
-                    duration = 60 * 45
-            )
+                    if (mId == null) {
+                        Log.i(TAG, "adding new session (Type: $mType)")
 
-            if (mSession.breaks != null) {
-                Log.d(TAG, "breaks present - adding default")
-                mSession.breaks!!.add(mDefaultBreak)
-            } else {
-                Log.d(TAG, "no break yet - adding default")
-                mSession.breaks = mutableListOf(mDefaultBreak)
-            }
+                        mSessionRef = userRef.collection(Session.FBP).document()
 
-            // write this to Firestore
-            mSessionRef.set(mSession.toMap())
+                        mSession = Session()
+                        mSession!!.objectId = mSessionRef.id
 
-        } else {
-            Log.d(TAG, "using existing session for mId: $mId (Type: $mType)")
-            mSessionRef = userRef.collection(Session.FBP).document(mId)
-        }
+                        mSession!!.allDay = when (mType) {
+                            Category.TYPE_OFF -> {
+                                mSession!!.category = defCategoryOff
+                                true
+                            }
+                            Category.TYPE_WORK -> {
+                                mSession!!.category = defCategoryWork
+                                false
+                            }
+                            else -> false
+                        }
 
-        Log.d(TAG, "mSessionRef is now: ${mSessionRef.path}")
+                        mSession!!.finished = true
+                        mSession!!.tsStart = Session.getZonedDateTimeNow().minusHours(8).toString()
+                        mSession!!.tsEnd = Session.getZonedDateTimeNow().toString()
+                        mSession!!.note = null
+
+                        /* ToDO(frennkie) makes no sense.. working on this in onComplete block below
+                            how to get full details from Category here?! :-/
+                            val sharedPref = PreferenceManager.getDefaultSharedPreferences(this.context)
+                            val defaultCategoryWork = sharedPref.getString("default_category_work", null)
+                            if (defaultCategoryWork != null) {
+                                Log.d(TAG, "setting default category work from prefs")
+                                mSession.category = Category(defaultCategoryWork)
+                            }
+                        */
+
+                        val mDefaultBreak = Break(
+                                comment = "Default Break",
+                                duration = defBreak
+                        )
+
+                        if (mSession!!.breaks != null) {
+                            Log.d(TAG, "breaks present - adding default")
+                            mSession!!.breaks!!.add(mDefaultBreak)
+                        } else {
+                            Log.d(TAG, "no break yet - adding default")
+                            mSession!!.breaks = mutableListOf(mDefaultBreak)
+                        }
+
+                        // write this to Firestore
+                        mSessionRef.set(mSession!!.toMap())
+
+                    } else {
+                        Log.d(TAG, "using existing session for mId: $mId (Type: $mType)")
+                        mSessionRef = userRef.collection(Session.FBP).document(mId)
+                    }
+
+                    Log.d(TAG, "mSessionRef is now: ${mSessionRef.path}")
+                }
 
 
         // get Categories (either Work or Off type)
@@ -208,7 +225,7 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
                                         llBreaks.visibility = View.GONE
                                         llDuration.visibility = View.GONE
                                         llNote.visibility = View.VISIBLE
-                                        llCategory.visibility = View.GONE
+                                        llCategory.visibility = View.VISIBLE
                                     } else {
                                         llStart.visibility = View.VISIBLE
                                         tvStartSymbol.visibility = View.VISIBLE
@@ -442,7 +459,11 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
             etNote.setText(mSession!!.note, TextView.BufferType.EDITABLE)
 
             mBuilder.setTitle("Update Note")
-            mBuilder.setNeutralButton("cancel") { _, _ -> }
+            mBuilder.setNeutralButton("Cancel") { _, _ -> }
+            mBuilder.setNegativeButton("Clear Note") { _, _ ->
+                tvNote.text = "N/A"
+                mSessionRef.update("note", null)
+            }
             mBuilder.setPositiveButton("Save") { _, _ ->
                 tvNote.text = etNote.text.toString()
                 mSessionRef.update("note", etNote.text.toString())
