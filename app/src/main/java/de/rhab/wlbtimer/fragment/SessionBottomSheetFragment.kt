@@ -38,6 +38,12 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
 
     private var mType = Category.TYPE_WORK
 
+    private var defBreak: Int? = 0
+
+    private var defCategoryOff: Category? = null
+
+    private var defCategoryWork: Category? = null
+
     private lateinit var numberList: ListPopupWindow
 
     private var mCategoryList = HashMap<String, Category>()
@@ -90,16 +96,28 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
         // Variable to hold existing or new Session Object
         var mSession: Session? = null
 
-
         val userRef = db.collection(WlbUser.FBP).document(mAuth.currentUser!!.uid)
         mCategoryColRef = userRef.collection(Category.FBP)
 
-        // get passed in Session ID
-        val mId = arguments?.getString(ARG_SESSION_ID)
+        val mId: String
+        // get passed in Session ID - return if null
+        if (arguments?.getString(ARG_SESSION_ID) == null) {
+            Log.w(TAG, "ARG_SESSION_ID is null!")
+            return rootView
+        } else {
+            mId = arguments?.getString(ARG_SESSION_ID)!!
+            Log.d(TAG, "ARG_SESSION_ID is: $mId")
+        }
 
-        if (arguments?.getString(ARG_SESSION_TYPE) != null) {
+        // get passed in Type
+        if (arguments?.getString(ARG_SESSION_TYPE) == null) {
+            return rootView
+        } else {
             mType = arguments?.getString(ARG_SESSION_TYPE)!!
         }
+
+        mSessionRef = userRef.collection(Session.FBP).document(mId)
+        Log.d(TAG, "mSessionRef is now: ${mSessionRef.path}")
 
         // get user Document (get default values and other settings)
         userRef.get()
@@ -108,67 +126,9 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
                 }
                 .addOnSuccessListener { documentSnapshot ->
                     val mWlbUser = documentSnapshot.toObject(WlbUser::class.java)!!
-                    val defBreak = mWlbUser.default_break ?: 60 * 45
-                    val defCategoryOff = mWlbUser.default_category_off
-                    val defCategoryWork = mWlbUser.default_category_work
-
-                    if (mId == null) {
-                        Log.i(TAG, "adding new session (Type: $mType)")
-
-                        mSessionRef = userRef.collection(Session.FBP).document()
-
-                        mSession = Session()
-                        mSession!!.objectId = mSessionRef.id
-
-                        mSession!!.allDay = when (mType) {
-                            Category.TYPE_OFF -> {
-                                mSession!!.category = defCategoryOff
-                                true
-                            }
-                            Category.TYPE_WORK -> {
-                                mSession!!.category = defCategoryWork
-                                false
-                            }
-                            else -> false
-                        }
-
-                        mSession!!.finished = true
-                        mSession!!.tsStart = Session.getZonedDateTimeNow().minusHours(8).toString()
-                        mSession!!.tsEnd = Session.getZonedDateTimeNow().toString()
-                        mSession!!.note = null
-
-                        /* ToDO(frennkie) makes no sense.. working on this in onComplete block below
-                            how to get full details from Category here?! :-/
-                            val sharedPref = PreferenceManager.getDefaultSharedPreferences(this.context)
-                            val defaultCategoryWork = sharedPref.getString("default_category_work", null)
-                            if (defaultCategoryWork != null) {
-                                Log.d(TAG, "setting default category work from prefs")
-                                mSession.category = Category(defaultCategoryWork)
-                            }
-                        */
-
-                        val mDefaultBreak = Break(
-                                comment = "Default Break",
-                                duration = defBreak
-                        )
-
-                        if (mSession!!.breaks != null) {
-                            Log.d(TAG, "breaks present - adding default")
-                            mSession!!.breaks!!.add(mDefaultBreak)
-                        } else {
-                            Log.d(TAG, "no break yet - adding default")
-                            mSession!!.breaks = mutableListOf(mDefaultBreak)
-                        }
-
-                        // write this to Firestore
-                        mSessionRef.set(mSession!!.toMap())
-
-                    } else {
-                        Log.d(TAG, "using existing session for mId: $mId (Type: $mType)")
-                        mSessionRef = userRef.collection(Session.FBP).document(mId)
-                    }
-
-                    Log.d(TAG, "mSessionRef is now: ${mSessionRef.path}")
+                    defBreak = mWlbUser.default_break ?: 60 * 45
+                    defCategoryOff = mWlbUser.default_category_off
+                    defCategoryWork = mWlbUser.default_category_work
                 }
 
 
@@ -198,136 +158,102 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
 
                     Log.d(TAG, "listCategory ($mType): $mArrayListCategory")
 
-
-                    // get Session Object - this has to wait for Categories to be loaded
-                    mSessionRef.get()
-                            .addOnFailureListener { e ->
-                                Log.d(TAG, "get failed with ", e)
-                            }
-                            .addOnSuccessListener { documentSnapshot ->
-                                if (documentSnapshot != null) {
-                                    mSession = documentSnapshot.toObject(Session::class.java)
-                                    Log.d(TAG, "found: $mSession")
-                                } else {
-                                    Log.w(TAG, "No such document")
-                                }
-
-                                if (mSession != null) {
-
-                                    if (mSession!!.allDay) {
-                                        llStart.visibility = View.VISIBLE
-                                        tvStartSymbol.visibility = View.GONE
-                                        tvStartSymbolAllDay.visibility = View.VISIBLE
-                                        tvStartDate.visibility = View.VISIBLE
-                                        tvStartTime.visibility = View.GONE
-
-                                        llEnd.visibility = View.GONE
-                                        llBreaks.visibility = View.GONE
-                                        llDuration.visibility = View.GONE
-                                        llNote.visibility = View.VISIBLE
-                                        llCategory.visibility = View.VISIBLE
-                                    } else {
-                                        llStart.visibility = View.VISIBLE
-                                        tvStartSymbol.visibility = View.VISIBLE
-                                        tvStartSymbolAllDay.visibility = View.GONE
-                                        tvStartDate.visibility = View.VISIBLE
-                                        tvStartTime.visibility = View.VISIBLE
-
-                                        llEnd.visibility = View.VISIBLE
-                                        llBreaks.visibility = View.VISIBLE
-                                        llDuration.visibility = View.VISIBLE
-                                        llNote.visibility = View.VISIBLE
-                                        llCategory.visibility = View.VISIBLE
-                                    }
-
-                                    if (mSession!!.tsStart != null) {
-                                        tvStartDate.text = mSession!!.getDateStart()
-                                        tvStartTime.text = mSession!!.getTimeZonedStart()
-                                    } else {
-                                        tvStartDate.text = "..."
-                                        tvStartTime.text = "..."
-                                    }
-
-                                    if (mSession!!.tsEnd != null) {
-                                        tvEndDate.text = mSession!!.getDateEnd()
-                                        tvEndTime.text = mSession!!.getTimeZonedEnd()
-                                    } else {
-                                        tvEndDate.text = "..."
-                                        tvEndTime.text = "..."
-                                    }
-
-                                    tvBreaks.text = mSession!!.getTotalBreakTime()
-
-                                    if (mSession!!.note != null) {
-                                        tvNote.text = mSession!!.note
-                                    } else {
-                                        tvNote.text = "N/A"  // ToDo(frennkie) special format?!
-                                    }
-
-                                    val mCategoryWork = mSession!!.category
-                                    Log.d(TAG, "result $mCategoryWork")
-                                    if (mCategoryWork != null) {
-                                        tvCategory.text = mCategoryWork.title
-
-                                        tvCategoryIcon.text = mCategoryWork.title.substring(0, 1)
-                                        val mColor = Color.parseColor(mCategoryWork.color)
-                                        mTvCategoryIconBackground.setColor(mColor)
-
-                                        tvDuration.text = mSession!!
-                                                .getDurationWeightedExcludingBreaks(mFactor = mCategoryWork.factor)
-                                    } else {
-
-                                        if (mCategoryList.isEmpty()) {
-                                            // User has no Category defined for this Tpe
-                                            Log.w(TAG, "User has no Categories defined for type: $mType")
-                                            tvCategory.text = "N/A"
-
-                                            tvCategoryIcon.text = "-"
-                                            val mColor = Color.parseColor("#666666")
-                                            mTvCategoryIconBackground.setColor(mColor)
-
-                                            tvDuration.text = mSession!!.getDurationWeightedExcludingBreaks()
-                                        } else {
-                                            for (it in mCategoryList.values) {
-                                                if (it.default) {
-                                                    // set on instance
-                                                    mSession!!.category = it
-
-                                                    // upload toFirestore
-                                                    val batch = db.batch()
-                                                    batch.update(mSessionRef, Category.FBP, mSession!!.category?.toMapNoSessions())
-
-                                                    // ToDo(frennkie) also store on Session?!
-                                                    batch.commit()
-                                                            .addOnFailureListener { e ->
-                                                                Log.w(TAG, "Failed to set/update Category! Error: ", e)
-                                                            }
-                                                            .addOnSuccessListener { _ ->
-                                                                Log.d(TAG, "Category set/updated")
-                                                            }
-
-                                                    // display
-                                                    tvCategory.text = it.title
-
-                                                    tvCategoryIcon.text = it.title.substring(0, 1)
-                                                    val mColor = Color.parseColor(it.color)
-                                                    mTvCategoryIconBackground.setColor(mColor)
-
-                                                    tvDuration.text = mSession!!
-                                                            .getDurationWeightedExcludingBreaks(mFactor = it.factor)
-                                                    break
-                                                }
-                                            }
-
-                                        }
-
-                                    }
-
-                                }
-
-                            }  // End of mSessionRef.get()
-
                 }  // End of mCategoryColRef.get()
+
+
+        // get Session Object - this has to wait for Categories to be loaded
+        mSessionRef.get()
+                .addOnFailureListener { e ->
+                    Log.d(TAG, "get failed with ", e)
+                }
+                .addOnSuccessListener { documentSnapshot ->
+                    if (documentSnapshot != null) {
+                        mSession = documentSnapshot.toObject(Session::class.java)
+                        Log.d(TAG, "found: $mSession")
+                    } else {
+                        Log.w(TAG, "No such document")
+                    }
+
+                    if (mSession != null) {
+
+                        if (mSession!!.allDay) {
+                            llStart.visibility = View.VISIBLE
+                            tvStartSymbol.visibility = View.GONE
+                            tvStartSymbolAllDay.visibility = View.VISIBLE
+                            tvStartDate.visibility = View.VISIBLE
+                            tvStartTime.visibility = View.GONE
+
+                            llEnd.visibility = View.GONE
+                            llBreaks.visibility = View.GONE
+                            llDuration.visibility = View.GONE
+                            llNote.visibility = View.VISIBLE
+                            llCategory.visibility = View.VISIBLE
+                        } else {
+                            llStart.visibility = View.VISIBLE
+                            tvStartSymbol.visibility = View.VISIBLE
+                            tvStartSymbolAllDay.visibility = View.GONE
+                            tvStartDate.visibility = View.VISIBLE
+                            tvStartTime.visibility = View.VISIBLE
+
+                            llEnd.visibility = View.VISIBLE
+                            llBreaks.visibility = View.VISIBLE
+                            llDuration.visibility = View.VISIBLE
+                            llNote.visibility = View.VISIBLE
+                            llCategory.visibility = View.VISIBLE
+                        }
+
+                        if (mSession!!.tsStart != null) {
+                            tvStartDate.text = mSession!!.getDateStart()
+                            tvStartTime.text = mSession!!.getTimeZonedStart()
+                        } else {
+                            tvStartDate.text = "..."
+                            tvStartTime.text = "..."
+                        }
+
+                        if (mSession!!.tsEnd != null) {
+                            tvEndDate.text = mSession!!.getDateEnd()
+                            tvEndTime.text = mSession!!.getTimeZonedEnd()
+                        } else {
+                            tvEndDate.text = "..."
+                            tvEndTime.text = "..."
+                        }
+
+                        tvBreaks.text = mSession!!.getTotalBreakTime()
+
+                        if (mSession!!.note != null) {
+                            tvNote.text = mSession!!.note
+                        } else {
+                            tvNote.text = "N/A"  // ToDo(frennkie) special format?!
+                        }
+
+                        val mCategoryWork = mSession!!.category
+                        Log.d(TAG, "result $mCategoryWork")
+
+
+                        if (mCategoryWork != null) {
+                            tvCategory.text = mCategoryWork.title
+
+                            tvCategoryIcon.text = mCategoryWork.title.substring(0, 1)
+                            val mColor = Color.parseColor(mCategoryWork.color)
+                            mTvCategoryIconBackground.setColor(mColor)
+
+                            tvDuration.text = mSession!!.getDurationWeightedExcludingBreaks()
+                        } else {
+
+                            tvCategory.text = "N/A"
+
+                            tvCategoryIcon.text = "-"
+                            val mColor = Color.parseColor("#666666")
+                            mTvCategoryIconBackground.setColor(mColor)
+
+                            tvDuration.text = mSession!!.getDurationWeightedExcludingBreaks()
+
+                        }
+
+                    }
+
+                }  // End of mSessionRef.get()
+
 
         //handle clicks
         tvStartDate.setOnClickListener {
@@ -343,6 +269,7 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
                 mSessionRef.set(mSession!!.toMap())
                 // update TextView on Bottom Dialog
                 tvStartDate.text = Session.toDateStr(newStartDateTime)
+                tvDuration.text = mSession!!.getDurationWeightedExcludingBreaks()
             }
 
             DatePickerDialog(context!!, dateSetListener, startDateTime.year, startDateTime.monthValue - 1, startDateTime.dayOfMonth).show()
@@ -362,6 +289,7 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
                 mSessionRef.set(mSession!!.toMap())
                 // update TextView on Bottom Dialog
                 tvStartTime.text = Session.toTimeZonedStr(newStartDateTime)
+                tvDuration.text = mSession!!.getDurationWeightedExcludingBreaks()
             }
 
             TimePickerDialog(context, timeSetListener, startDateTime.hour, startDateTime.minute, true).show()
@@ -382,6 +310,7 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
                     mSessionRef.set(mSession!!.toMap())
                     // update TextView on Bottom Dialog
                     tvEndDate.text = Session.toDateStr(newEndDateTime)
+                    tvDuration.text = mSession!!.getDurationWeightedExcludingBreaks()
                 }
 
                 DatePickerDialog(context!!, dateSetListener, endDateTime.year, endDateTime.monthValue - 1, endDateTime.dayOfMonth).show()
@@ -404,6 +333,7 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
                     mSessionRef.set(mSession!!.toMap())
                     // update TextView on Bottom Dialog
                     tvEndTime.text = Session.toTimeZonedStr(newEndDateTime)
+                    tvDuration.text = mSession!!.getDurationWeightedExcludingBreaks()
                 }
 
                 TimePickerDialog(context, timeSetListener, endDateTime.hour, endDateTime.minute, true).show()
@@ -437,6 +367,7 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
 
                     // update TextView on Bottom Dialog
                     tvBreaks.text = "%01d:%02d".format(hour, minute)
+                    tvDuration.text = mSession!!.getDurationWeightedExcludingBreaks()
                 }
                 val mDurationMinutes: Int = mBreak.duration / 60
                 TimePickerDialog(context, timeSetListener, 0, mDurationMinutes, true).show()
@@ -459,11 +390,11 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
             etNote.setText(mSession!!.note, TextView.BufferType.EDITABLE)
 
             mBuilder.setTitle("Update Note")
-            mBuilder.setNeutralButton("Cancel") { _, _ -> }
-            mBuilder.setNegativeButton("Clear Note") { _, _ ->
-                tvNote.text = "N/A"
-                mSessionRef.update("note", null)
-            }
+            mBuilder.setNegativeButton("Cancel") { _, _ -> }
+//            mBuilder.setNegativeButton("Clear Note") { _, _ ->
+//                tvNote.text = "N/A"
+//                mSessionRef.update("note", null)
+//            }
             mBuilder.setPositiveButton("Save") { _, _ ->
                 tvNote.text = etNote.text.toString()
                 mSessionRef.update("note", etNote.text.toString())
@@ -488,24 +419,11 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             numberList.setAdapter(adapter)
 
-
-            // DRY attempt
-//                listCategory = listCategoryWork
-//                mCategoryList = mCategoryWorkList
-
-
             numberList.setOnItemClickListener { _, _, position, _ ->
                 Log.d(TAG, "listCW: $mArrayListCategory; p: $position; listCW[p]:${mArrayListCategory[position]}")
                 val map = mArrayListCategory[position]
                 val mCategoryObjectId = map["objectId"]!!
                 val mCategory = mCategoryList[mCategoryObjectId]!!
-                tvCategory.text = mCategory.title
-
-
-                tvCategoryIcon.text = mCategory.title.substring(0, 1)
-                val mColor = Color.parseColor(mCategory.color)
-                mTvCategoryIconBackground.setColor(mColor)
-
 
                 // store possible old Category objectId
                 var mOldCategoryObjectId: String? = null
@@ -538,7 +456,13 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
                             // intended change until refresh!
                         }
                         .addOnSuccessListener { _ ->
-                            Log.d(TAG, "Category set/updated")
+                            Log.d(TAG, "Category set/updated - update UI")
+
+                            tvCategory.text = mCategory.title
+                            tvCategoryIcon.text = mCategory.title.substring(0, 1)
+                            mTvCategoryIconBackground.setColor(Color.parseColor(mCategory.color))
+
+                            tvDuration.text = mSession!!.getDurationWeightedExcludingBreaks()
                         }
 
                 numberList.dismiss()
@@ -555,10 +479,9 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
             mBuilder.setTitle("Delete this entry?")
 
             if (mSession!!.finished) {
-                mBuilder.setMessage("Are you sure you want to delete the entry started: \n" +
+                mBuilder.setMessage("Are you sure you want to delete the entry started at " +
                         "${mSession!!.getDateStart()} ${mSession!!.getTimeStart()}\n")
 
-                mBuilder.setCancelable(false)
                 mBuilder.setPositiveButton("Delete") { _, _ ->
                     userRef.collection(Session.FBP).document(mSession!!.objectId!!).delete()
                     dismiss()
@@ -566,7 +489,6 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
 
             } else {
                 mBuilder.setMessage("Are you sure you want to discard new entry")
-                mBuilder.setCancelable(false)
                 mBuilder.setPositiveButton("Discard") { _, _ ->
 
                     val batch = db.batch()
@@ -590,6 +512,7 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
 
             }
 
+            mBuilder.setCancelable(false)
             mBuilder.setNegativeButton("Cancel") { _, _ ->
                 Toast.makeText(this.context, "Cancelled.", Toast.LENGTH_LONG).show()
             }

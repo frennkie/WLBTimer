@@ -16,6 +16,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.larswerkman.holocolorpicker.ColorPicker
 import de.rhab.wlbtimer.R
 import de.rhab.wlbtimer.model.Category
+import de.rhab.wlbtimer.model.Session
 import de.rhab.wlbtimer.model.WlbUser
 
 
@@ -125,13 +126,22 @@ class CategoryOffUpdateActivity : AppCompatActivity() {
 
             val batch = db.batch()
             batch.set(mCategoryRef, mCategory!!)
-            batch.update(userRef, "category-last", mCategoryRef.id)
+            // store a "last edited" reference
+            batch.update(userRef, WlbUser.FBP_LAST_CATEGORY_OFF, mCategoryRef.id)
+
+            mCategory?.sessions?.forEach { session ->
+                batch.update(userRef.collection(Session.FBP).document(session),
+                        Category.FBP,
+                        mCategory!!.toMapNoSessions())
+            }
+
+            // additionally store copy on user document
+            batch.update(db.collection(WlbUser.FBP).document(mAuth.currentUser!!.uid),
+                    "default_" + Category.FBP + "_" + Category.TYPE_OFF, mCategory!!.toMapNoSessions())
 
             batch.commit()
                     .addOnFailureListener { e ->
-                        Log.w(TAG, "Failed to start new session! Error: ", e)
-                        // this catches the error.. may be do something with this?! UI does reflect the
-                        // intended change until refresh!
+                        Log.w(TAG, "Failed to update Category Work! Error: ", e)
                     }
                     .addOnSuccessListener { _ ->
                         Log.d(TAG, "success!")

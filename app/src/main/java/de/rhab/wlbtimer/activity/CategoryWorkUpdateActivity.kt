@@ -136,7 +136,8 @@ class CategoryWorkUpdateActivity : AppCompatActivity() {
 
             val batch = db.batch()
             batch.set(mCategoryWorkRef, mCategory!!)
-            batch.update(userRef, "category-last", mCategoryWorkRef.id)
+            // store a "last edited" reference
+            batch.update(userRef, WlbUser.FBP_LAST_CATEGORY_WORK, mCategoryWorkRef.id)
 
             mCategory?.sessions?.forEach { session ->
                 batch.update(userRef.collection(Session.FBP).document(session),
@@ -144,11 +145,13 @@ class CategoryWorkUpdateActivity : AppCompatActivity() {
                         mCategory!!.toMapNoSessions())
             }
 
+            // additionally store copy on user document
+            batch.update(db.collection(WlbUser.FBP).document(mAuth.currentUser!!.uid),
+                    "default_" + Category.FBP + "_" + Category.TYPE_WORK, mCategory!!.toMapNoSessions())
+
             batch.commit()
                     .addOnFailureListener { e ->
-                        Log.w(TAG, "Failed to start new session! Error: ", e)
-                        // this catches the error.. may be do something with this?! UI does reflect the
-                        // intended change until refresh!
+                        Log.w(TAG, "Failed to update Category Off! Error: ", e)
                     }
                     .addOnSuccessListener { _ ->
                         Log.d(TAG, "success!")

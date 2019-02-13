@@ -182,6 +182,9 @@
     <string name="list_item_session_duration_dummy">7:30</string>
 
 
+    <!-- Main screen -->
+    <string name="main_add_off">Day Off</string>
+    <string name="main_add_work">Work</string>
 
 
 </resources>

@@ -79,7 +79,7 @@ class SessionActivity : AppCompatActivity() {
                 val mBuilder = AlertDialog.Builder(recyclerView.context)
                 mBuilder.setTitle("Delete entry?")
                 mBuilder.setMessage("Are you sure you want to delete this entry? This can not be undone!")
-                mBuilder.setNeutralButton(R.string.session_cancel_delete) { _, _ ->
+                mBuilder.setNegativeButton(R.string.session_cancel_delete) { _, _ ->
                     Log.d(TAG, "canceled swipe delete")
                     mAdapter.notifyItemChanged(viewHolder.adapterPosition)  // ToDo(frennkie) this is "costly"
                 }

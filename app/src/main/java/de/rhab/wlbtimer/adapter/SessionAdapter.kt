@@ -125,14 +125,14 @@ open class SessionAdapter(options: FirestoreRecyclerOptions<Session>)
         }
 
         if (model.category != null) {
-            holder.mTsDurationView.text = model.getDurationWeightedExcludingBreaks(model.category!!.factor)
+            holder.mTsDurationView.text = model.getDurationWeightedExcludingBreaks()
             holder.mIcon.text = model.category!!.title.substring(0, 1)
 
             val mColor = Color.parseColor(model.category!!.color)
             mIconBackground.setColor(mColor)
 
         } else {
-            holder.mTsDurationView.text = model.getDurationWeightedExcludingBreaks(1.0)
+            holder.mTsDurationView.text = model.getDurationWeightedExcludingBreaks()
 
             holder.mIcon.text = "-"
             mIconBackground.setColor(Color.parseColor("#666666"))

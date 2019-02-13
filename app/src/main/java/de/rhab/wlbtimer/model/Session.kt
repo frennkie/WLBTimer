@@ -21,37 +21,23 @@ data class Session(
         var allDay: Boolean = false,
         var finished: Boolean = false,
 
-        // breaks is implement as list, but currently this should have only either 0 or 1 entry
+        // breaks is implemented as list, but currently this should have only either 0 or 1 entry
         var breaks: MutableList<Break>? = null
 ) {
     @Exclude
     fun toMap(): Map<String, Any?> {
-        return if (breaks != null) {
-            mapOf(
-                    "objectId" to objectId,
-                    "category" to category,
-                    "tsStartForward" to fromDefaultStr(tsStart!!)!!.toEpochSecond(),
-                    "tsStartReverse" to 1 - fromDefaultStr(tsStart!!)!!.toEpochSecond(),
-                    "tsStart" to tsStart,
-                    "tsEnd" to tsEnd,
-                    "note" to note,
-                    "allDay" to allDay,
-                    "finished" to finished,
-                    "breaks" to breaks!!.map(Break::toMap)
-            )
-        } else {
-            mapOf(
-                    "objectId" to objectId,
-                    "tsStartForward" to fromDefaultStr(tsStart!!)!!.toEpochSecond(),
-                    "tsStartReverse" to 1 - fromDefaultStr(tsStart!!)!!.toEpochSecond(),
-                    "tsStart" to tsStart,
-                    "tsEnd" to tsEnd,
-                    "note" to note,
-                    "allDay" to allDay,
-                    "finished" to finished
-            )
-        }
-
+        return mapOf(
+                "objectId" to objectId,
+                "category" to category,
+                "tsStartForward" to fromDefaultStr(tsStart!!)!!.toEpochSecond(),
+                "tsStartReverse" to 1 - fromDefaultStr(tsStart!!)!!.toEpochSecond(),
+                "tsStart" to tsStart,
+                "tsEnd" to tsEnd,
+                "note" to note,
+                "allDay" to allDay,
+                "finished" to finished,
+                "breaks" to breaks?.map(Break::toMap)
+        )
     }
 
     @Exclude
@@ -72,7 +58,7 @@ data class Session(
     }
 
     @Exclude
-    fun getDurationWeightedExcludingBreaks(mFactor: Double = 1.0): String {
+    fun getDurationWeightedExcludingBreaks(): String {
         if (this.tsEnd == null) {
             return "running"
         }
@@ -84,6 +70,12 @@ data class Session(
             this.breaks!!.forEach { mBreak ->
                 mTotalBreakTime += mBreak.duration
             }
+        }
+
+        val mFactor = if (this.category != null) {
+            this.category!!.factor
+        } else {
+            1.0
         }
 
         val startEpoch = ZonedDateTime.parse(this.tsStart)!!.toEpochSecond()
@@ -192,7 +184,7 @@ data class Session(
     @Exclude
     fun getTimeZonedEnd(): String {
         return if (this.tsEnd != null) {
-                Session.toTimeZonedStr(ZonedDateTime.parse(this.tsEnd))
+            Session.toTimeZonedStr(ZonedDateTime.parse(this.tsEnd))
         } else {
             return "..."
         }

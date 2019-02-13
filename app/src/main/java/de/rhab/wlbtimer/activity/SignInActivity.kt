@@ -101,7 +101,7 @@ class SignInActivity : AppCompatActivity() {
     private fun storeSuccessfulSignIn(uid: String) {
         val userRef = db.collection(WlbUser.FBP).document(uid)
         val data = HashMap<String, Any>()
-        data["last-sign-in"] = FieldValue.serverTimestamp()
+        data["last_sign_in"] = FieldValue.serverTimestamp()
         userRef.set(data)
     }
 

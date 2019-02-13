@@ -19,13 +19,14 @@
                 android:checkableBehavior="single">
 
                 <item
-                    android:id="@+id/nav_category_work"
-                    android:icon="@drawable/ic_location_city_white_24dp"
-                    android:title="@string/drawer_nav_category_work" />
-                <item
                     android:id="@+id/nav_category_off"
                     android:icon="@drawable/ic_golf_course_black_24dp"
                     android:title="@string/drawer_nav_category_off" />
+
+                <item
+                    android:id="@+id/nav_category_work"
+                    android:icon="@drawable/ic_location_city_white_24dp"
+                    android:title="@string/drawer_nav_category_work" />
 
             </group>
         </menu>

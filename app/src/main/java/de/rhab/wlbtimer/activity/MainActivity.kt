@@ -51,13 +51,19 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
 
     private lateinit var userRef: DocumentReference
 
-    private lateinit var mWlbUser: WlbUser
+    private var mWlbUser: WlbUser? = null
+
+    private var defBreak: Int? = 0
+
+    private var defCategoryOff: Category? = null
+
+    private var defCategoryWork: Category? = null
 
     private var mSessionRunningListener: ListenerRegistration? = null
 
     private var mSessionRunningStatus: Boolean = false
 
-    var mSessionRunningId: String? = null
+    private var mSessionRunningId: String? = null
 
     private lateinit var remoteConfig: FirebaseRemoteConfig
 
@@ -289,20 +295,10 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
 
         // ToDo(frennkie) hm...
         if (mAuth.currentUser != null) {
-            userRef = db.collection(WlbUser.FBP).document(mAuth.currentUser!!.uid)
 
             setUpRecyclerView()
 
         }
-
-        // get user Document (get default values and other settings)
-        userRef.get()
-                .addOnFailureListener { e ->
-                    Log.d(TAG, "get failed with ", e)
-                }
-                .addOnSuccessListener { documentSnapshot ->
-                    mWlbUser = documentSnapshot.toObject(WlbUser::class.java)!!
-                }
 
     }
 
@@ -326,37 +322,33 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
             R.id.action_add -> {
 
                 val mBuilder = AlertDialog.Builder(this)
-                mBuilder.setTitle("Add Entry")
-                mBuilder.setMessage("Choose type of new Entry")
 
-                mBuilder.setNeutralButton(android.R.string.cancel) { _, _ ->
-                    Log.d(TAG, "Cancel")
-                }
+                mBuilder.setTitle("Choose type of new Entry")
 
-                mBuilder.setNegativeButton("Day(s) Off") { _, _ ->
-                    Log.d(TAG, "Day(s) Off")
-                    val sessionBottomDialogFragment = SessionBottomSheetFragment.newInstance()
-                    val bundle = Bundle()
+                val dialogLayout = layoutInflater.inflate(R.layout.alert_dialog_main_add, null)
+                val llOff = dialogLayout.findViewById<TextView>(R.id.linear_layout_off)
+                val llWork = dialogLayout.findViewById<TextView>(R.id.linear_layout_work)
+                mBuilder.setView(dialogLayout)
 
-                    bundle.putString(SessionBottomSheetFragment.ARG_SESSION_TYPE, Category.TYPE_OFF)
-                    sessionBottomDialogFragment.arguments = bundle
-                    sessionBottomDialogFragment.show(supportFragmentManager, "session_dialog_fragment")
-                }
-
-                mBuilder.setPositiveButton("Work Entry") { _, _ ->
-                    Log.d(TAG, "Work Entry")
-                    val sessionBottomDialogFragment = SessionBottomSheetFragment.newInstance()
-                    val bundle = Bundle()
-
-                    bundle.putString(SessionBottomSheetFragment.ARG_SESSION_TYPE, Category.TYPE_WORK)
-                    sessionBottomDialogFragment.arguments = bundle
-                    sessionBottomDialogFragment.show(supportFragmentManager, "session_dialog_fragment")
-                }
+                mBuilder.setNegativeButton(android.R.string.cancel) { _, _ -> }
 
                 val mDialog = mBuilder.create()
+
+                llOff.setOnClickListener {
+                    addNewSessionOff()
+                    mDialog.dismiss()
+
+                }
+
+                llWork.setOnClickListener {
+                    addNewSessionWork()
+                    mDialog.dismiss()
+                }
+
                 mDialog.show()
 
                 true
+
             }
 
             else -> super.onOptionsItemSelected(item)
@@ -365,6 +357,11 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
 
 
     private fun setUpRecyclerView() {
+        // make sure that there is an identified user (Guest or sign-in)
+        if (mAuth.currentUser == null) {
+            return
+        }
+
         val query = db.collection(WlbUser.FBP)
                 .document(mAuth.currentUser!!.uid)
                 .collection(Session.FBP)
@@ -422,6 +419,108 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
 
     }
 
+    private fun addNewSessionOff() {
+        Log.d(TAG, "adding new session (Type: ${Category.TYPE_OFF})")
+
+        // get a new "push key" for document
+        val mSessionRef = userRef.collection(Session.FBP).document()
+
+        val mSession = Session(
+                // ToDo(frennkie) check for default Category
+                //session.category = Category(key?!, "Foobar")  <- from User!
+                tsStart = Session.getZonedDateTimeNow().toString(),
+                tsEnd = Session.getZonedDateTimeNow().toString(),
+                allDay = true,
+                note = null,
+                finished = true,
+                breaks = null,
+                category = mWlbUser!!.default_category_off,
+                objectId = mSessionRef.id  // additionally store push key
+        )
+
+        Log.d(TAG, "mSession: $mSession")
+
+        val batch = db.batch()
+        batch.set(mSessionRef, mSession.toMap())  // ToDo(frennkie) check
+
+        batch.commit()
+                .addOnFailureListener { e ->
+                    Log.w(TAG, "Failed to add new (Off) session! Error: ", e)
+
+                }
+                .addOnSuccessListener {
+                    Log.d(TAG, "Successfully added new Session (Type: ${Category.TYPE_OFF})")
+
+                    val mSnackbar = Snackbar.make(findViewById(R.id.main_content),
+                            "Added new Day Off!", Snackbar.LENGTH_LONG)
+                    mSnackbar.setAction("VIEW") { _ ->
+                        val sessionBottomDialogFragment = SessionBottomSheetFragment.newInstance()
+                        val bundle = Bundle()
+                        bundle.putString(SessionBottomSheetFragment.ARG_SESSION_ID, mSession.objectId)
+                        bundle.putString(SessionBottomSheetFragment.ARG_SESSION_TYPE, Category.TYPE_OFF)
+                        sessionBottomDialogFragment.arguments = bundle
+                        sessionBottomDialogFragment.show(supportFragmentManager, "session_dialog_fragment")
+                    }
+                    mSnackbar.show()
+
+                }
+
+    }
+
+    private fun addNewSessionWork() {
+        Log.d(TAG, "adding new session (Type: ${Category.TYPE_WORK})")
+
+        // get a new "push key" for document
+        val mSessionRef = userRef.collection(Session.FBP).document()
+
+        val mSession = Session(
+                // ToDo(frennkie) check for default Category
+                //session.category = Category(key?!, "Foobar")  <- from User!
+                tsStart = Session.getZonedDateTimeNow().minusHours(8).toString(),
+                tsEnd = Session.getZonedDateTimeNow().toString(),
+                allDay = false,
+                note = null,
+                finished = true,
+                breaks = mutableListOf(
+                        Break(comment = "Default Break", duration = defBreak!!)
+                ),
+                objectId = mSessionRef.id  // additionally store push key
+        )
+
+        Log.d(TAG, "mSession: $mSession")
+
+        val batch = db.batch()
+        batch.set(mSessionRef, mSession.toMap())  // ToDo(frennkie) check
+
+        val defCategoryWork = mWlbUser!!.default_category_work
+        if (defCategoryWork != null) {
+            Log.d(TAG, "defCatW: $defCategoryWork")
+            batch.update(mSessionRef, Category.FBP, defCategoryWork.toMapNoSessions())
+        }
+
+        batch.commit()
+                .addOnFailureListener { e ->
+                    Log.w(TAG, "Failed to add new session! Error: ", e)
+
+                }
+                .addOnSuccessListener {
+                    Log.d(TAG, "Successfully added new Session (Type: ${Category.TYPE_WORK})")
+
+                    val mSnackbar = Snackbar.make(findViewById(R.id.main_content),
+                            "Added new session!", Snackbar.LENGTH_LONG)
+                    mSnackbar.setAction("VIEW") { _ ->
+                        val sessionBottomDialogFragment = SessionBottomSheetFragment.newInstance()
+                        val bundle = Bundle()
+                        bundle.putString(SessionBottomSheetFragment.ARG_SESSION_ID, mSession.objectId)
+                        bundle.putString(SessionBottomSheetFragment.ARG_SESSION_TYPE, Category.TYPE_WORK)
+                        sessionBottomDialogFragment.arguments = bundle
+                        sessionBottomDialogFragment.show(supportFragmentManager, "session_dialog_fragment")
+                    }
+                    mSnackbar.show()
+
+                }
+    }
+
     private fun startNewSession() {
         // get a new "push key" for document
         val mSessionRef = userRef.collection(Session.FBP).document()
@@ -446,7 +545,7 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
         batch.set(mSessionRef, mSession.toMap())  // ToDo(frennkie) check
 
 
-        val defCategoryWork = mWlbUser.default_category_work
+        val defCategoryWork = mWlbUser!!.default_category_work
         if (defCategoryWork != null) {
             Log.d(TAG, "defCatW: $defCategoryWork")
             batch.update(mSessionRef, Category.FBP, defCategoryWork.toMapNoSessions())
@@ -467,9 +566,11 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
                         val sessionBottomDialogFragment = SessionBottomSheetFragment.newInstance()
                         val bundle = Bundle()
                         bundle.putString(SessionBottomSheetFragment.ARG_SESSION_ID, mSession.objectId)
+                        bundle.putString(SessionBottomSheetFragment.ARG_SESSION_TYPE, Category.TYPE_WORK)
                         sessionBottomDialogFragment.arguments = bundle
                         sessionBottomDialogFragment.show(supportFragmentManager, "session_dialog_fragment")
                     }
+
                     mSnackbar.show()
 
                 }
@@ -532,12 +633,21 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
                                 }
                                 .addOnSuccessListener {
                                     Log.d(TAG, "success!")
+
+                                    val mSnackbar = Snackbar.make(findViewById(R.id.main_content),
+                                            "finished Session (${mSession.getDurationWeightedExcludingBreaks()})", Snackbar.LENGTH_LONG)
+                                    mSnackbar.setAction("VIEW") { _ ->
+                                        val sessionBottomDialogFragment = SessionBottomSheetFragment.newInstance()
+                                        val bundle = Bundle()
+                                        bundle.putString(SessionBottomSheetFragment.ARG_SESSION_ID, mSession.objectId)
+                                        bundle.putString(SessionBottomSheetFragment.ARG_SESSION_TYPE, Category.TYPE_WORK)
+                                        sessionBottomDialogFragment.arguments = bundle
+                                        sessionBottomDialogFragment.show(supportFragmentManager, "session_dialog_fragment")
+                                    }
+                                    mSnackbar.show()
+
+
                                 }
-
-                        Snackbar.make(findViewById(R.id.main_content),
-                                "finished Session (${mSession.getDurationWeightedExcludingBreaks()})",
-                                Snackbar.LENGTH_LONG).show()
-
                     }
                 }
 
@@ -566,17 +676,27 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
                         return@EventListener
                     }
 
-                    if (snapshot != null
-                            && snapshot.exists()
-                            && snapshot.contains(Session.FBP_SESSION_RUNNING)) {
+                    if (snapshot != null && snapshot.exists()) {
 
-                        snapshot.data?.get(Session.FBP_SESSION_RUNNING).toString()
-                        Log.d(TAG, "monitorSessionRunning found running session")
-                        setUiSessionRunning(snapshot.data?.get(Session.FBP_SESSION_RUNNING).toString())
+                        mWlbUser = snapshot.toObject(WlbUser::class.java)!!
+                        Log.d(TAG, "mWlbUser: $mWlbUser")
 
-                    } else {
-                        unsetUiSessionRunning()
+                        defBreak = mWlbUser!!.default_break ?: 60 * 45
+                        defCategoryOff = mWlbUser!!.default_category_off
+                        defCategoryWork = mWlbUser!!.default_category_work
+
+                        if (snapshot.contains(Session.FBP_SESSION_RUNNING)) {
+
+                            snapshot.data?.get(Session.FBP_SESSION_RUNNING).toString()
+                            Log.d(TAG, "monitorSessionRunning found running session")
+                            setUiSessionRunning(snapshot.data?.get(Session.FBP_SESSION_RUNNING).toString())
+
+                        } else {
+                            unsetUiSessionRunning()
+                        }
+
                     }
+
                 })
 
     }
@@ -591,6 +711,7 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
         mAuth.addAuthStateListener(mAuthListener!!)
         if (mAuth.currentUser != null) {
             Log.d(TAG, "setup mSessionRunningListener and mAdapter from onStart")
+            userRef = db.collection(WlbUser.FBP).document(mAuth.currentUser!!.uid)
             monitorSessionRunning()
             mAdapter.startListening()
         } else {
