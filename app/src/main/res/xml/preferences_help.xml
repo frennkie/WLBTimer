@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <Preference
+            android:key="prefHelpFeedback"
+            android:summary="@string/preference_help_feedback_summary"
+            android:title="@string/preference_help_feedback_title"/>
+
+    <PreferenceCategory android:title="@string/preference_help_category_additional_info">
+
+        <Preference
+                android:key="prefHelpImprint"
+                android:title="@string/preference_help_imprint_title"/>
+
+        <Preference
+                android:key="prefHelpPrivacy"
+                android:title="@string/preference_help_privacy_title"/>
+
+        <Preference
+                android:key="prefHelpToS"
+                android:title="@string/preference_help_tos_title"/>
+
+        <Preference
+                android:key="prefHelpLicenses"
+                android:title="@string/preference_help_licenses_title"/>
+
+    </PreferenceCategory>
+
+
+    <PreferenceCategory android:title="@string/preference_help_category_about_app">
+
+        <Preference
+                android:key="prefHelpVersion"
+                android:summary="@string/preference_help_version_summary"
+                android:title="@string/preference_help_version_title"/>
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

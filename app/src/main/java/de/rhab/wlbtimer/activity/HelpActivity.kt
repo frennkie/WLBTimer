@@ -4,12 +4,14 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.preference.PreferenceFragmentCompat
+import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import de.rhab.wlbtimer.BuildConfig
 import de.rhab.wlbtimer.R
 
 
-class SettingsActivity : AppCompatActivity() {
+class HelpActivity : AppCompatActivity() {
 
     private var mAuthListener: FirebaseAuth.AuthStateListener? = null
 
@@ -23,11 +25,11 @@ class SettingsActivity : AppCompatActivity() {
         // check user authentication - don't forget onStart() and onStop()
         mAuthListener = FirebaseAuth.AuthStateListener { auth ->
             if (auth.currentUser == null) {
-                startActivity(Intent(this@SettingsActivity, SignInActivity::class.java))
+                startActivity(Intent(this@HelpActivity, SignInActivity::class.java))
             }
         }
 
-        supportFragmentManager.beginTransaction().replace(android.R.id.content, SettingsFragment()).commit()
+        supportFragmentManager.beginTransaction().replace(android.R.id.content, HelpFragment()).commit()
 
     }
 
@@ -43,24 +45,24 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    companion object {
 
-        private const val TAG = "SettingsActivity"
-    }
-
-    class SettingsFragment : PreferenceFragmentCompat() {
+    class HelpFragment : PreferenceFragmentCompat() {
         override fun onCreatePreferences(p0: Bundle?, p1: String?) {
-            addPreferencesFromResource(R.xml.preferences_settings)
-
-            val pref = findPreference("prefSettingsAccount")
-            pref.summary = "test@example.com"
+            Log.d(TAG, "onCreatePreferences")
+            addPreferencesFromResource(R.xml.preferences_help)
+            val prefHelpVersion = findPreference("prefHelpVersion")
+            prefHelpVersion.summary = BuildConfig.VERSION_NAME
         }
 
         companion object {
 
-            private const val TAG = "SettingsFragment"
+            private const val TAG = "HelpFragment"
         }
 
     }
 
+    companion object {
+
+        private const val TAG = "HelpActivity"
+    }
 }

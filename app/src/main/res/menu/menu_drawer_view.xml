@@ -8,7 +8,7 @@
 
         <item
             android:id="@+id/nav_sessions"
-            android:icon="@drawable/ic_format_list_bulleted_white_24dp"
+            android:icon="@drawable/ic_format_list_buleted_white_24dp"
             android:title="@string/drawer_nav_sessions" />
     </group>
 
@@ -56,22 +56,24 @@
         </menu>
     </item>
 
-    <item android:title="Foobar">
-        <menu>
-            <group
-                android:id="@+id/grpid40"
-                android:checkableBehavior="single">
+    <group
+        android:id="@+id/grpid40"
+        android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_sign_out"
+            android:icon="@drawable/ic_exit_to_app_black_24dp"
+            android:title="@string/drawer_nav_sign_out" />
 
-                <item
-                    android:id="@+id/nav_settings"
-                    android:icon="@drawable/ic_settings_black_24dp"
-                    android:title="@string/drawer_nav_settings" />
-                <item
-                    android:id="@+id/nav_sign_out"
-                    android:icon="@drawable/ic_exit_to_app_black_24dp"
-                    android:title="@string/drawer_nav_sign_out" />
-            </group>
-        </menu>
-    </item>
+        <item
+            android:id="@+id/nav_settings"
+            android:icon="@drawable/ic_settings_black_24dp"
+            android:title="@string/drawer_nav_settings" />
+
+        <item
+            android:id="@+id/nav_help"
+            android:icon="@drawable/ic_help_black_24dp"
+            android:title="@string/drawer_nav_help" />
+
+    </group>
 
 </menu>

@@ -102,7 +102,7 @@ class SignInActivity : AppCompatActivity() {
         val userRef = db.collection(WlbUser.FBP).document(uid)
         val data = HashMap<String, Any>()
         data["last_sign_in"] = FieldValue.serverTimestamp()
-        userRef.set(data)
+        userRef.update(data)
     }
 
     public override fun onStart() {

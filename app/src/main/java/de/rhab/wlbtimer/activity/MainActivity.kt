@@ -17,6 +17,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.TextView
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
@@ -151,15 +152,20 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
                     intent.putExtra(ReportActivity.INTENT_EXTRA_MESSAGE, message)
                     startActivityForResult(intent, TEXT_REQUEST_REPORT_ACTIVITY_TEST)
                 }
+                R.id.nav_sign_out -> {
+                    Log.d(TAG, "DrawerNav: Sign out")
+                    // sign out
+                    signOut()
+                }
                 R.id.nav_settings -> {
                     Log.d(TAG, "DrawerNav: Settings")
                     // open SettingsActivity
                     startActivity(Intent(applicationContext, SettingsActivity::class.java))
                 }
-                R.id.nav_sign_out -> {
-                    Log.d(TAG, "DrawerNav: Sign out")
-                    // sign out
-                    signOut()
+                R.id.nav_help -> {
+                    Log.d(TAG, "DrawerNav: Help")
+                    // HelpActivity
+                    startActivity(Intent(applicationContext, HelpActivity::class.java))
                 }
                 else -> {
                     Log.d(TAG, "DrawerNav: Not Found")
@@ -323,11 +329,11 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
 
                 val mBuilder = AlertDialog.Builder(this)
 
-                mBuilder.setTitle("Choose type of new Entry")
+                mBuilder.setTitle("Choose type for new entry")
 
                 val dialogLayout = layoutInflater.inflate(R.layout.alert_dialog_main_add, null)
-                val llOff = dialogLayout.findViewById<TextView>(R.id.linear_layout_off)
-                val llWork = dialogLayout.findViewById<TextView>(R.id.linear_layout_work)
+                val llOff = dialogLayout.findViewById<LinearLayout>(R.id.linear_layout_off)
+                val llWork = dialogLayout.findViewById<LinearLayout>(R.id.linear_layout_work)
                 mBuilder.setView(dialogLayout)
 
                 mBuilder.setNegativeButton(android.R.string.cancel) { _, _ -> }
