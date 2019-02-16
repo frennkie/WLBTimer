@@ -16,20 +16,22 @@ data class WlbUser(
     var last_category_off: String? = null,
     var last_category_work: String? = null,
     var last_sign_in: Timestamp? = null,
-    var session_running: String? = null
+    var session_running: String? = null,
+    var settings: HashMap<String, Any>? = null
 
 ) {
     @Exclude
     fun toMap(): Map<String, Any?> {
         return mapOf(
-                "nickname" to nickname,
-                FBP_DEFAULT_BREAK to default_break,
-                FBP_DEFAULT_CATEGORY_WORK to default_category_work,
-                FBP_DEFAULT_CATEGORY_OFF to default_category_off,
-                FBP_LAST_CATEGORY_OFF to last_category_off,
-                FBP_LAST_CATEGORY_WORK to last_category_work,
-                FBP_LAST_SIGN_IN to last_sign_in,
-                FBP_SESSION_RUNNING to session_running
+            "nickname" to nickname,
+            FBP_DEFAULT_BREAK to default_break,
+            FBP_DEFAULT_CATEGORY_WORK to default_category_work,
+            FBP_DEFAULT_CATEGORY_OFF to default_category_off,
+            FBP_LAST_CATEGORY_OFF to last_category_off,
+            FBP_LAST_CATEGORY_WORK to last_category_work,
+            FBP_LAST_SIGN_IN to last_sign_in,
+            FBP_SESSION_RUNNING to session_running,
+            FBP_SETTINGS to settings
         )
     }
 
@@ -45,7 +47,9 @@ data class WlbUser(
         const val FBP_LAST_CATEGORY_WORK = "last_category_work"
         const val FBP_LAST_SIGN_IN = "last_sign_in"
 
-        const val FBP_SESSION_RUNNING  = "session_running"
+        const val FBP_SESSION_RUNNING = "session_running"
+
+        const val FBP_SETTINGS = "settings"
 
     }
 }

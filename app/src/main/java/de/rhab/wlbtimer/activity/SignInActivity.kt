@@ -15,6 +15,7 @@ import com.firebase.ui.auth.ErrorCodes
 import com.firebase.ui.auth.IdpResponse
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import de.rhab.wlbtimer.model.WlbUser
 
 
@@ -104,7 +105,7 @@ class SignInActivity : AppCompatActivity() {
         val userRef = db.collection(WlbUser.FBP).document(uid)
         val data = HashMap<String, Any>()
         data[WlbUser.FBP_LAST_SIGN_IN] = FieldValue.serverTimestamp()
-        userRef.update(data)
+        userRef.set(data, SetOptions.merge())
     }
 
     public override fun onStart() {

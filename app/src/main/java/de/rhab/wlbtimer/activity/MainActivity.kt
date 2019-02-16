@@ -461,7 +461,7 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
 
                     val mSnackbar = Snackbar.make(findViewById(R.id.main_content),
                             "Added new Day Off!", Snackbar.LENGTH_LONG)
-                    mSnackbar.setAction("VIEW") { _ ->
+                    mSnackbar.setAction("VIEW") {
                         val sessionBottomDialogFragment = SessionBottomSheetFragment.newInstance()
                         val bundle = Bundle()
                         bundle.putString(SessionBottomSheetFragment.ARG_SESSION_ID, mSession.objectId)

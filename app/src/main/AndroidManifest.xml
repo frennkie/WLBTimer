@@ -86,7 +86,7 @@
 
         <activity
                 android:name=".activity.SettingsActivity"
-                android:label="@string/preference_settings_top_title"
+                android:label="@string/pref_settings_top_title"
                 android:parentActivityName=".activity.MainActivity"
                 android:theme="@style/Theme.AppCompat">
             <meta-data
@@ -96,7 +96,7 @@
 
         <activity
                 android:name=".activity.HelpActivity"
-                android:label="@string/preference_help_top_title"
+                android:label="@string/pref_help_top_title"
                 android:parentActivityName=".activity.MainActivity"
                 android:theme="@style/Theme.AppCompat">
             <meta-data

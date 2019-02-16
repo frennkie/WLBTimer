@@ -94,43 +94,88 @@
 
 
     <!-- Strings related to Settings (Drawer -> Settings) -->
-    <string name="preference_settings_top_title">Settings</string>
+    <string name="pref_settings_top_title">Settings</string>
 
-    <string name="preference_settings_category">Account</string>
+    <string name="pref_settings_category">Account</string>
 
-    <string name="preference_settings_account_summary">mail@example.com</string>
-    <string name="preference_settings_account_title">View Account Details</string>
+    <string name="pref_settings_account_key">pref_settings_account_key</string>
+    <string name="pref_settings_account_summary">mail@example.com</string>
+    <string name="pref_settings_account_title">View Account Details</string>
 
-    <string name="preference_settings_account_last_sign_in_summary">Never</string>
-    <string name="preference_settings_account_last_sign_in_title">Last Sign In</string>
+    <string name="pref_settings_account_last_sign_in_key">pref_settings_account_last_sign_in_key</string>
+    <string name="pref_settings_account_last_sign_in_summary">Never</string>
+    <string name="pref_settings_account_last_sign_in_title">Last Sign In</string>
 
-    <string name="preference_settings_account_nickname_title">Nickname</string>
+    <string name="pref_settings_account_nickname_key">pref_settings_account_nickname_key</string>
+    <string name="pref_settings_account_nickname_summary">N/A</string>
+    <string name="pref_settings_account_nickname_title">Nickname</string>
 
 
-    <string name="preference_settings_work_days">Work Days</string>
+    <string name="pref_settings_work_days">Work Days</string>
 
+    <string name="pref_settings_work_days_select_key">pref_settings_work_days_select_key</string>
+    <string name="pref_settings_work_days_select_summary">Mo-Su</string>
+    <string name="pref_settings_work_days_select_title">Work Days</string>
+
+    <string-array name="pref_settings_work_days_select_entries">
+        <item>Monday</item>
+        <item>Tuesday</item>
+        <item>Wednesday</item>
+        <item>Thursday</item>
+        <item>Friday</item>
+        <item>Saturday</item>
+        <item>Sunday</item>
+    </string-array>
+
+    <string-array name="pref_settings_work_days_select_values">
+        <item>Mo</item>
+        <item>Tu</item>
+        <item>We</item>
+        <item>Th</item>
+        <item>Fr</item>
+        <item>Sa</item>
+        <item>Su</item>
+    </string-array>
+
+    <string-array name="pref_settings_work_days_select_default">
+        <item>Mo</item>
+        <item>Tu</item>
+        <item>We</item>
+        <item>Th</item>
+        <item>Fr</item>
+    </string-array>
 
 
     <!-- Strings related to Help (Drawer -> Help) -->
-    <string name="preference_help_top_title">Help</string>
+    <string name="pref_help_top_title">Help</string>
 
-    <string name="preference_help_feedback_summary">Send us some feedback</string>
-    <string name="preference_help_feedback_title">Feedback</string>
+    <string name="pref_help_feedback_key" translatable="false">pref_help_feedback_key</string>
+    <string name="pref_help_feedback_summary">Send us some feedback</string>
+    <string name="pref_help_feedback_title">Feedback</string>
 
-    <string name="preference_help_category_additional_info">Additional Information</string>
+    <string name="pref_help_category_additional_info">Additional Information</string>
 
-    <string name="preference_help_imprint_title">Imprint</string>
-    <string name="preference_help_privacy_title">Privacy</string>
-    <string name="preference_help_tos_title">Terms of Service</string>
-    <string name="preference_help_licenses_title">Licenses</string>
+    <string name="pref_help_imprint_key" translatable="false">pref_help_imprint_key</string>
+    <string name="pref_help_imprint_title">Imprint</string>
 
-    <string name="preference_help_category_about_app">About this App</string>
+    <string name="pref_help_privacy_key" translatable="false">pref_help_privacy_key</string>
+    <string name="pref_help_privacy_title">Privacy</string>
 
-    <string name="preference_help_homepage_summary">https://home</string>
-    <string name="preference_help_homepage_title">Homepage</string>
+    <string name="pref_help_tos_key" translatable="false">pref_help_tos_key</string>
+    <string name="pref_help_tos_title">Terms of Service</string>
 
-    <string name="preference_help_version_summary">1.2.3</string>
-    <string name="preference_help_version_title">Version</string>
+    <string name="pref_help_licenses_key" translatable="false">pref_help_licenses_key</string>
+    <string name="pref_help_licenses_title">Licenses</string>
+
+    <string name="pref_help_category_about_app">About this App</string>
+
+    <string name="pref_help_homepage_key" translatable="false">pref_help_homepage_key</string>
+    <string name="pref_help_homepage_summary">https://home</string>
+    <string name="pref_help_homepage_title">Homepage</string>
+
+    <string name="pref_help_version_key" translatable="false">pref_help_version_key</string>
+    <string name="pref_help_version_summary">1.2.3</string>
+    <string name="pref_help_version_title">Version</string>
 
 
 

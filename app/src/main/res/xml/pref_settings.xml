@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="@string/pref_settings_category">
+
+        <Preference
+                android:key="@string/pref_settings_account_key"
+                android:summary="@string/pref_settings_account_summary"
+                android:title="@string/pref_settings_account_title"/>
+
+        <Preference
+                android:key="@string/pref_settings_account_last_sign_in_key"
+                android:summary="@string/pref_settings_account_last_sign_in_summary"
+                android:title="@string/pref_settings_account_last_sign_in_title"/>
+
+        <EditTextPreference
+                android:key="@string/pref_settings_account_nickname_key"
+                android:summary="@string/pref_settings_account_nickname_summary"
+                android:title="@string/pref_settings_account_nickname_title"
+                android:maxLines="1"
+                android:text="foo"
+                android:selectAllOnFocus="true"
+                android:singleLine="true"/>
+
+    </PreferenceCategory>
+
+        <MultiSelectListPreference
+                android:key="@string/pref_settings_work_days_select_key"
+                android:summary="@string/pref_settings_work_days_select_summary"
+                android:title="@string/pref_settings_work_days_select_title"
+
+                android:dialogTitle="Title"
+
+                android:persistent="true"
+
+                android:enabled="true"
+
+                android:entries="@array/pref_settings_work_days_select_entries"
+                android:entryValues="@array/pref_settings_work_days_select_values"
+                android:defaultValue="@array/pref_settings_work_days_select_default" />
+
+    <CheckBoxPreference
+            android:title="CheckBox Setting"
+            android:defaultValue="true"
+            android:summary="This is just for testing.."
+            android:key="checkboxPref" />
+
+
+</PreferenceScreen>
