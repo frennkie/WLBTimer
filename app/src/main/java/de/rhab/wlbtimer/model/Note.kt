@@ -1,9 +1,11 @@
 package de.rhab.wlbtimer.model
 
+import android.support.annotation.Keep
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.IgnoreExtraProperties
 
 
+@Keep
 @IgnoreExtraProperties
 data class Note(
         val title: String = "",

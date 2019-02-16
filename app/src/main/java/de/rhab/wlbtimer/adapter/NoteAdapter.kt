@@ -1,5 +1,6 @@
 package de.rhab.wlbtimer.adapter
 
+import android.support.annotation.Keep
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,6 +14,7 @@ import de.rhab.wlbtimer.R
 import de.rhab.wlbtimer.model.Note
 
 
+@Keep
 class NoteAdapter(options: FirestoreRecyclerOptions<Note>) : FirestoreRecyclerAdapter<Note, NoteAdapter.NoteHolder>(options) {
 
     var listener: OnItemClickListener? = null

@@ -4,6 +4,7 @@ package de.rhab.wlbtimer.activity
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.support.annotation.Keep
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import com.firebase.ui.auth.AuthUI
@@ -17,6 +18,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import de.rhab.wlbtimer.model.WlbUser
 
 
+@Keep
 class SignInActivity : AppCompatActivity() {
 
     private var mAuthListener: FirebaseAuth.AuthStateListener? = null
@@ -101,7 +103,7 @@ class SignInActivity : AppCompatActivity() {
     private fun storeSuccessfulSignIn(uid: String) {
         val userRef = db.collection(WlbUser.FBP).document(uid)
         val data = HashMap<String, Any>()
-        data["last_sign_in"] = FieldValue.serverTimestamp()
+        data[WlbUser.FBP_LAST_SIGN_IN] = FieldValue.serverTimestamp()
         userRef.update(data)
     }
 

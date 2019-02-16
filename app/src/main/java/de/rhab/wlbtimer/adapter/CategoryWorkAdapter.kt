@@ -1,5 +1,6 @@
 package de.rhab.wlbtimer.adapter
 
+import android.support.annotation.Keep
 import android.support.v7.widget.CardView
 import android.support.v7.widget.RecyclerView
 import android.util.Log
@@ -15,6 +16,7 @@ import de.rhab.wlbtimer.R
 import de.rhab.wlbtimer.model.Category
 
 
+@Keep
 class CategoryWorkAdapter(options: FirestoreRecyclerOptions<Category>) :
         FirestoreRecyclerAdapter<Category, CategoryWorkAdapter.CategoryWorkHolder>(options) {
 

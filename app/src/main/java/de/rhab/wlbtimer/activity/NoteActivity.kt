@@ -2,6 +2,7 @@ package de.rhab.wlbtimer.activity
 
 import android.content.Intent
 import android.os.Bundle
+import android.support.annotation.Keep
 import android.support.design.widget.FloatingActionButton
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
@@ -20,6 +21,7 @@ import de.rhab.wlbtimer.model.Note
 import de.rhab.wlbtimer.model.WlbUser
 
 
+@Keep
 class NoteActivity : AppCompatActivity() {
 
     private var mAuthListener: FirebaseAuth.AuthStateListener? = null

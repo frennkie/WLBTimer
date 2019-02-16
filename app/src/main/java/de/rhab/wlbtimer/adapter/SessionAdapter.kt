@@ -4,6 +4,7 @@ package de.rhab.wlbtimer.adapter
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
+import android.support.annotation.Keep
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.RecyclerView
 import android.util.Log
@@ -21,7 +22,8 @@ import org.threeten.bp.temporal.IsoFields
 import android.support.v7.widget.CardView
 
 
-open class SessionAdapter(options: FirestoreRecyclerOptions<Session>)
+@Keep
+class SessionAdapter(options: FirestoreRecyclerOptions<Session>)
     : FirestoreRecyclerAdapter<Session, SessionAdapter.SessionHolder>(options) {
 
     var listener: OnItemClickListener? = null

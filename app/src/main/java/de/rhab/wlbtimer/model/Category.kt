@@ -1,11 +1,13 @@
 package de.rhab.wlbtimer.model
 
 import android.graphics.Color
+import android.support.annotation.Keep
 import android.util.Log
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.IgnoreExtraProperties
 
 
+@Keep
 @IgnoreExtraProperties
 data class Category (
         var objectId: String = "",

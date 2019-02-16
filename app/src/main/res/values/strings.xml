@@ -101,6 +101,15 @@
     <string name="preference_settings_account_summary">mail@example.com</string>
     <string name="preference_settings_account_title">View Account Details</string>
 
+    <string name="preference_settings_account_last_sign_in_summary">Never</string>
+    <string name="preference_settings_account_last_sign_in_title">Last Sign In</string>
+
+    <string name="preference_settings_account_nickname_title">Nickname</string>
+
+
+    <string name="preference_settings_work_days">Work Days</string>
+
+
 
     <!-- Strings related to Help (Drawer -> Help) -->
     <string name="preference_help_top_title">Help</string>
@@ -116,6 +125,9 @@
     <string name="preference_help_licenses_title">Licenses</string>
 
     <string name="preference_help_category_about_app">About this App</string>
+
+    <string name="preference_help_homepage_summary">https://home</string>
+    <string name="preference_help_homepage_title">Homepage</string>
 
     <string name="preference_help_version_summary">1.2.3</string>
     <string name="preference_help_version_title">Version</string>

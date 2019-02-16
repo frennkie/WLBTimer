@@ -3,6 +3,7 @@ package de.rhab.wlbtimer.activity
 import android.content.res.Configuration
 import android.os.Bundle
 import android.preference.PreferenceActivity
+import android.support.annotation.Keep
 import android.support.annotation.LayoutRes
 import android.support.v7.app.ActionBar
 import android.support.v7.app.AppCompatDelegate
@@ -11,6 +12,8 @@ import android.view.MenuInflater
 import android.view.View
 import android.view.ViewGroup
 
+
+@Keep
 abstract class AppCompatPreferenceActivity : PreferenceActivity() {
 
     private var appCompatDelegateInstance: AppCompatDelegate? = null

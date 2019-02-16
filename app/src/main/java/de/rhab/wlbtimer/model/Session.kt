@@ -1,5 +1,6 @@
 package de.rhab.wlbtimer.model
 
+import android.support.annotation.Keep
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.IgnoreExtraProperties
 
@@ -9,6 +10,7 @@ import org.threeten.bp.temporal.ChronoUnit
 import kotlin.math.floor
 
 
+@Keep
 @IgnoreExtraProperties
 data class Session(
         var objectId: String? = null,

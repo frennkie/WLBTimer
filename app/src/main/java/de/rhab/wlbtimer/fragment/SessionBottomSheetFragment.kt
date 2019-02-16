@@ -6,6 +6,7 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.support.annotation.Keep
 import android.support.design.widget.BottomSheetDialogFragment
 import android.support.v7.app.AlertDialog
 import android.util.Log
@@ -26,6 +27,7 @@ import de.rhab.wlbtimer.model.WlbUser
 import org.threeten.bp.ZonedDateTime
 
 
+@Keep
 class SessionBottomSheetFragment : BottomSheetDialogFragment() {
 
     private val mAuth = FirebaseAuth.getInstance()

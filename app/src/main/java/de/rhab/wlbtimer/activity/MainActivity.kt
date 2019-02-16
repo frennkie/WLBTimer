@@ -2,6 +2,7 @@ package de.rhab.wlbtimer.activity
 
 import android.content.Intent
 import android.os.Bundle
+import android.support.annotation.Keep
 import android.support.design.widget.NavigationView
 import android.support.design.widget.Snackbar
 import android.support.v4.view.GravityCompat
@@ -35,6 +36,7 @@ import de.rhab.wlbtimer.model.Session
 import de.rhab.wlbtimer.model.WlbUser
 
 
+@Keep
 class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheetListener {
 
     private var mAuthListener: FirebaseAuth.AuthStateListener? = null
