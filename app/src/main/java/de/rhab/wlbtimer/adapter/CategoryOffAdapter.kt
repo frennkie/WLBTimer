@@ -1,13 +1,12 @@
 package de.rhab.wlbtimer.adapter
 
-import android.support.annotation.Keep
-import android.support.v7.widget.CardView
-import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.annotation.Keep
+import androidx.recyclerview.widget.RecyclerView
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.firebase.ui.firestore.ObservableSnapshotArray
@@ -43,15 +42,16 @@ class CategoryOffAdapter(options: FirestoreRecyclerOptions<Category>) :
     fun deleteItem(position: Int) {
         // ToDo(frennkie) deleting does not delete sub collections! Check it
         snapshots.getSnapshot(position).reference.delete()
-                .addOnSuccessListener { Log.d(TAG, "DocumentSnapshot successfully deleted!") }
-                .addOnFailureListener { e -> Log.w(TAG, "Error deleting document", e) }
+            .addOnSuccessListener { Log.d(TAG, "DocumentSnapshot successfully deleted!") }
+            .addOnFailureListener { e -> Log.w(TAG, "Error deleting document", e) }
     }
 
-    inner class CategoryOffHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class CategoryOffHolder(itemView: View) :
+        RecyclerView.ViewHolder(itemView) {
         var textViewDefaultIcon: TextView = itemView.findViewById(R.id.tv_category_off_default_icon)
         var textViewTitle: TextView = itemView.findViewById(R.id.tv_category_off_title)
         var textViewTimesUsed: TextView = itemView.findViewById(R.id.tv_category_off_times_used)
-        var cardLayout: CardView = itemView.findViewById(R.id.card_view)
+        var cardLayout: androidx.cardview.widget.CardView = itemView.findViewById(R.id.card_view)
 
         init {
             itemView.setOnClickListener {

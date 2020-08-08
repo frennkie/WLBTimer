@@ -4,19 +4,19 @@ package de.rhab.wlbtimer.activity
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.support.annotation.Keep
-import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import androidx.annotation.Keep
+import androidx.appcompat.app.AppCompatActivity
 import com.firebase.ui.auth.AuthUI
-import com.google.firebase.auth.FirebaseAuth
-import de.rhab.wlbtimer.BuildConfig
-import java.util.*
 import com.firebase.ui.auth.ErrorCodes
 import com.firebase.ui.auth.IdpResponse
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import de.rhab.wlbtimer.BuildConfig
 import de.rhab.wlbtimer.model.WlbUser
+import java.util.*
 
 
 @Keep

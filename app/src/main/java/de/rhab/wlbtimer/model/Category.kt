@@ -1,22 +1,22 @@
 package de.rhab.wlbtimer.model
 
 import android.graphics.Color
-import android.support.annotation.Keep
 import android.util.Log
+import androidx.annotation.Keep
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.IgnoreExtraProperties
 
 
 @Keep
 @IgnoreExtraProperties
-data class Category (
-        var objectId: String = "",
-        var type: String = Category.TYPE_WORK,
-        var title: String = "",
-        var color: String = "darkgray",
-        var factor: Double = 1.0,
-        var sessions: ArrayList<String> = ArrayList(),  // session is intentionally not included in toMap() -> ToDo check
-        var default: Boolean = false
+data class Category(
+    var objectId: String = "",
+    var type: String = TYPE_WORK,
+    var title: String = "",
+    var color: String = "darkgray",
+    var factor: Double = 1.0,
+    var sessions: ArrayList<String> = ArrayList(),  // session is intentionally not included in toMap() -> ToDo check
+    var default: Boolean = false
 ) {
     @Exclude
     fun toMap(): Map<String, Any?> {

@@ -1,8 +1,8 @@
 package de.rhab.wlbtimer.activity
 
 import android.os.Bundle
-import android.support.annotation.Keep
-import android.support.v7.app.AppCompatActivity
+import androidx.annotation.Keep
+import androidx.appcompat.app.AppCompatActivity
 import de.rhab.wlbtimer.fragment.SettingsPrefFragment
 
 

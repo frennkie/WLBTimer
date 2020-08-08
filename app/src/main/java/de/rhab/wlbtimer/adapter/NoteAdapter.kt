@@ -1,12 +1,12 @@
 package de.rhab.wlbtimer.adapter
 
-import android.support.annotation.Keep
-import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.annotation.Keep
+import androidx.recyclerview.widget.RecyclerView
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.firestore.DocumentSnapshot
@@ -52,11 +52,12 @@ class NoteAdapter(options: FirestoreRecyclerOptions<Note>) : FirestoreRecyclerAd
     fun deleteItem(position: Int) {
         // ToDo(frennkie) deleting does not delete sub collections! Check it
         snapshots.getSnapshot(position).reference.delete()
-                .addOnSuccessListener { Log.d(TAG, "DocumentSnapshot successfully deleted!") }
-                .addOnFailureListener { e -> Log.w(TAG, "Error deleting document", e) }
+            .addOnSuccessListener { Log.d(TAG, "DocumentSnapshot successfully deleted!") }
+            .addOnFailureListener { e -> Log.w(TAG, "Error deleting document", e) }
     }
 
-    inner class NoteHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class NoteHolder(itemView: View) :
+        RecyclerView.ViewHolder(itemView) {
         var textViewTitle: TextView = itemView.findViewById(R.id.tv_note_title)
         var textViewDescription: TextView = itemView.findViewById(R.id.tv_note_description)
         var textViewPriority: TextView = itemView.findViewById(R.id.tv_note_priority)

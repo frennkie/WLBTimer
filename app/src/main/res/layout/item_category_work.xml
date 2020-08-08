@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/card_view"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginEnd="8dp"
-    android:layout_marginStart="8dp"
-    android:layout_marginTop="8dp"
-    app:cardBackgroundColor="#83757a">
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/card_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        app:cardBackgroundColor="#83757a">
 
     <RelativeLayout
-        android:id="@+id/card_layout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal"
-        android:padding="8dp">
+            android:id="@+id/card_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:padding="8dp">
 
         <TextView
-            android:id="@+id/tv_category_work_default_icon"
+                android:id="@+id/tv_category_work_default_icon"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:drawableStart="@drawable/ic_star_yellow_24dp"
-            android:gravity="start|center_vertical"
+                android:layout_height="wrap_content"
+                app:drawableStartCompat="@drawable/ic_star_yellow_24dp"
+                android:gravity="start|center_vertical"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
             android:visibility="visible" />
 
@@ -48,17 +48,17 @@
             android:textStyle="italic" />
 
         <TextView
-            android:id="@+id/tv_category_work_factor"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="15dp"
-            android:text="@string/update_category_work_factor"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large"
-            android:textSize="18sp"
-            android:textStyle="italic" />
+                android:id="@+id/tv_category_work_factor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="15dp"
+                android:text="@string/update_category_work_factor"
+                android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                android:textSize="18sp"
+                android:textStyle="italic" />
 
-    </RelativeLayout >
+    </RelativeLayout>
 
-</android.support.v7.widget.CardView>
+</androidx.cardview.widget.CardView>

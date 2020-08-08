@@ -2,15 +2,13 @@ package de.rhab.wlbtimer.activity
 
 import android.content.Intent
 import android.os.Bundle
-import android.support.annotation.Keep
-import android.support.design.widget.Snackbar
-import android.support.v7.app.AlertDialog
-import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.helper.ItemTouchHelper
 import android.util.Log
+import androidx.annotation.Keep
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.ItemTouchHelper
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
@@ -44,7 +42,7 @@ class SessionActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_session)
 
-        val toolbar = findViewById<android.support.v7.widget.Toolbar>(R.id.toolbar)
+        val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
@@ -54,29 +52,39 @@ class SessionActivity : AppCompatActivity() {
 
     private fun setUpRecyclerView() {
         val query = db.collection(WlbUser.FBP)
-                .document(mAuth.currentUser!!.uid)
-                .collection(Session.FBP)
-                .orderBy("tsStart", Query.Direction.DESCENDING)
+            .document(mAuth.currentUser!!.uid)
+            .collection(Session.FBP)
+            .orderBy("tsStart", Query.Direction.DESCENDING)
 
         val options = FirestoreRecyclerOptions.Builder<Session>()
-                .setQuery(query, Session::class.java)
-                .build()
+            .setQuery(query, Session::class.java)
+            .build()
 
         mAdapter = SessionAdapter(options)
 
-        val recyclerView = findViewById<RecyclerView>(R.id.session_recycler_view)
+        val recyclerView =
+            findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.session_recycler_view)
         recyclerView.setHasFixedSize(true)  // ToDo(frennkie) fixed!? yes or no
-        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.layoutManager =
+            androidx.recyclerview.widget.LinearLayoutManager(this)
         recyclerView.adapter = mAdapter
 
-        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0,
-                ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
-            override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder,
-                                target: RecyclerView.ViewHolder): Boolean {
+        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
+            0,
+            ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
+        ) {
+            override fun onMove(
+                recyclerView: androidx.recyclerview.widget.RecyclerView,
+                viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder,
+                target: androidx.recyclerview.widget.RecyclerView.ViewHolder
+            ): Boolean {
                 return false
             }
 
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+            override fun onSwiped(
+                viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder,
+                direction: Int
+            ) {
 
                 val mBuilder = AlertDialog.Builder(recyclerView.context)
                 mBuilder.setTitle("Delete entry?")

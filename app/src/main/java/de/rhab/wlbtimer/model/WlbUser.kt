@@ -1,6 +1,6 @@
 package de.rhab.wlbtimer.model
 
-import android.support.annotation.Keep
+import androidx.annotation.Keep
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.IgnoreExtraProperties

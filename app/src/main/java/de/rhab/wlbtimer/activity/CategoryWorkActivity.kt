@@ -2,14 +2,12 @@ package de.rhab.wlbtimer.activity
 
 import android.content.Intent
 import android.os.Bundle
-import android.support.annotation.Keep
-import android.support.design.widget.FloatingActionButton
-import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.helper.ItemTouchHelper
+import androidx.annotation.Keep
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.ItemTouchHelper
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.firebase.ui.firestore.ObservableSnapshotArray
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
@@ -43,7 +41,7 @@ class CategoryWorkActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_category_work)
 
-        val toolbar = findViewById<android.support.v7.widget.Toolbar>(R.id.toolbar)
+        val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
@@ -59,29 +57,40 @@ class CategoryWorkActivity : AppCompatActivity() {
     private fun setUpRecyclerView() {
         // sort Categories alphabetically by title
         val query = db.collection(WlbUser.FBP)
-                .document(mAuth.currentUser!!.uid)
-                .collection(Category.FBP)
-                .whereEqualTo("type", Category.TYPE_WORK)
-                .orderBy("title", Query.Direction.ASCENDING)
+            .document(mAuth.currentUser!!.uid)
+            .collection(Category.FBP)
+            .whereEqualTo("type", Category.TYPE_WORK)
+            .orderBy("title", Query.Direction.ASCENDING)
 
         val options = FirestoreRecyclerOptions.Builder<Category>()
-                .setQuery(query, Category::class.java)
-                .build()
+            .setQuery(query, Category::class.java)
+            .build()
 
         mAdapter = CategoryWorkAdapter(options)
 
-        val recyclerView = findViewById<RecyclerView>(R.id.category_work_recycler_view)
+        val recyclerView =
+            findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.category_work_recycler_view)
         recyclerView.setHasFixedSize(true)
-        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.layoutManager =
+            androidx.recyclerview.widget.LinearLayoutManager(this)
         recyclerView.adapter = mAdapter
 
-        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0,
-                ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
-            override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
+        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
+            0,
+            ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
+        ) {
+            override fun onMove(
+                recyclerView: androidx.recyclerview.widget.RecyclerView,
+                viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder,
+                target: androidx.recyclerview.widget.RecyclerView.ViewHolder
+            ): Boolean {
                 return false
             }
 
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+            override fun onSwiped(
+                viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder,
+                direction: Int
+            ) {
                 mAdapter.deleteItem(viewHolder.adapterPosition)
             }
         }).attachToRecyclerView(recyclerView)

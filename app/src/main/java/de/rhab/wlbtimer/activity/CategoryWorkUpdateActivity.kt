@@ -3,14 +3,14 @@ package de.rhab.wlbtimer.activity
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
-import android.support.annotation.Keep
-import android.support.design.widget.FloatingActionButton
-import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.Keep
+import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
@@ -44,7 +44,7 @@ class CategoryWorkUpdateActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_category_work_update)
 
-        val toolbar = findViewById<android.support.v7.widget.Toolbar>(R.id.toolbar)
+        val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 

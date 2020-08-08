@@ -2,21 +2,18 @@ package de.rhab.wlbtimer.activity
 
 import android.content.Intent
 import android.os.Bundle
-import android.preference.PreferenceManager
-import android.support.annotation.Keep
-import android.support.design.widget.Snackbar
-import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
-import com.crashlytics.android.Crashlytics
+import androidx.annotation.Keep
+import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import de.rhab.wlbtimer.BuildConfig
 import de.rhab.wlbtimer.R
-import io.fabric.sdk.android.Fabric
 
 
 @Keep
@@ -30,7 +27,6 @@ class ReportActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Fabric.with(this, Crashlytics())
 
         // check user authentication - don't forget onStart() and onStop()
         mAuthListener = FirebaseAuth.AuthStateListener { auth ->
@@ -41,7 +37,7 @@ class ReportActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_report)
 
-        val toolbar = findViewById<android.support.v7.widget.Toolbar>(R.id.toolbar)
+        val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
 //        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
@@ -50,7 +46,10 @@ class ReportActivity : AppCompatActivity() {
         val greetingTextView = findViewById<View>(R.id.greetingTextView) as TextView
         val curText = greetingTextView.text.toString()
 
-        val sharedPref = PreferenceManager.getDefaultSharedPreferences(this.applicationContext)
+        val sharedPref = this.applicationContext.getSharedPreferences(
+            "${BuildConfig.APPLICATION_ID}_prefs_${mAuth.currentUser!!.uid}", 0
+        )
+
         val displayName = sharedPref.getString("example_text", "foobar")
 
         greetingTextView.text = "$curText - $displayName - $strtext"

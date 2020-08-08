@@ -5,10 +5,10 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.preference.CheckBoxPreference
 import android.preference.EditTextPreference
-import android.support.annotation.Keep
-import android.support.v7.preference.Preference
-import android.support.v7.preference.PreferenceFragmentCompat
 import android.util.Log
+import androidx.annotation.Keep
+import androidx.preference.Preference
+import androidx.preference.PreferenceFragmentCompat
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.EventListener
@@ -164,8 +164,8 @@ class SettingsPrefFragment : PreferenceFragmentCompat() {
 
             }
 
-            is android.support.v14.preference.MultiSelectListPreference -> {
-                val pref: android.support.v14.preference.MultiSelectListPreference = preference
+            is androidx.preference.MultiSelectListPreference -> {
+                val pref: androidx.preference.MultiSelectListPreference = preference
 
                 if (value != null) {
                     val stringValue = value as Set<*>
@@ -188,8 +188,8 @@ class SettingsPrefFragment : PreferenceFragmentCompat() {
 
             }
 
-            is android.support.v7.preference.EditTextPreference -> {
-                val pref: android.support.v7.preference.EditTextPreference = preference
+            is androidx.preference.EditTextPreference -> {
+                val pref: androidx.preference.EditTextPreference = preference
 
                 if (value != null) {
                     val stringValue = value.toString()
@@ -238,7 +238,7 @@ class SettingsPrefFragment : PreferenceFragmentCompat() {
      * to reflect its new value.
      */
     private val sBindPreferenceSummaryToValueListener =
-        android.support.v7.preference.Preference.OnPreferenceChangeListener { preference, value ->
+        Preference.OnPreferenceChangeListener { preference, value ->
 
             updatePreference(preference, value, true)
 
@@ -330,15 +330,15 @@ class SettingsPrefFragment : PreferenceFragmentCompat() {
                 )
             }
 
-            is android.support.v7.preference.EditTextPreference -> {
-                val pref: android.support.v7.preference.EditTextPreference = mPreference
+            is androidx.preference.EditTextPreference -> {
+                val pref: androidx.preference.EditTextPreference = mPreference
                 sBindPreferenceSummaryToValueListener.onPreferenceChange(
                     mPreference,
                     userSharedPrefs.getString(pref.key, "")
                 )
             }
 
-            is android.support.v14.preference.MultiSelectListPreference -> {
+            is androidx.preference.MultiSelectListPreference -> {
                 val pref: Preference = mPreference
                 sBindPreferenceSummaryToValueListener.onPreferenceChange(
                     mPreference,

@@ -2,15 +2,13 @@ package de.rhab.wlbtimer.activity
 
 import android.content.Intent
 import android.os.Bundle
-import android.support.annotation.Keep
-import android.support.design.widget.FloatingActionButton
-import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.helper.ItemTouchHelper
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.Keep
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.ItemTouchHelper
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
@@ -44,7 +42,7 @@ class NoteActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_note)
 
-        val toolbar = findViewById<android.support.v7.widget.Toolbar>(R.id.toolbar)
+        val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
@@ -62,28 +60,39 @@ class NoteActivity : AppCompatActivity() {
     private fun setUpRecyclerView() {
         val query = db.collection(WlbUser.FBP)
                 .document(mAuth.currentUser!!.uid)
-                .collection(Note.FBP)
-                .orderBy("priority", Query.Direction.DESCENDING)
+            .collection(Note.FBP)
+            .orderBy("priority", Query.Direction.DESCENDING)
         // .whereArrayContains("tags", "ccc")
 
         val options = FirestoreRecyclerOptions.Builder<Note>()
-                .setQuery(query, Note::class.java)
-                .build()
+            .setQuery(query, Note::class.java)
+            .build()
 
         mAdapter = NoteAdapter(options)
 
-        val recyclerView = findViewById<RecyclerView>(R.id.note_recycler_view)
+        val recyclerView =
+            findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.note_recycler_view)
         recyclerView.setHasFixedSize(true)
-        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.layoutManager =
+            androidx.recyclerview.widget.LinearLayoutManager(this)
         recyclerView.adapter = mAdapter
 
-        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0,
-                ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
-            override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
+        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
+            0,
+            ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
+        ) {
+            override fun onMove(
+                recyclerView: androidx.recyclerview.widget.RecyclerView,
+                viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder,
+                target: androidx.recyclerview.widget.RecyclerView.ViewHolder
+            ): Boolean {
                 return false
             }
 
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+            override fun onSwiped(
+                viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder,
+                direction: Int
+            ) {
                 mAdapter.deleteItem(viewHolder.adapterPosition)
             }
         }).attachToRecyclerView(recyclerView)
@@ -132,7 +141,7 @@ class NoteActivity : AppCompatActivity() {
         val noteRef = userRef.collection(Note.FBP).document()
         batch.set(noteRef, note)
 
-        batch.update(userRef, "Note-last", noteRef.id)
+        batch.update(userRef, "note-last", noteRef.id)
 
         batch.commit().addOnSuccessListener { _ -> Log.d(TAG, "Successfully batch committed something") }
                 .addOnFailureListener { e -> Log.w(TAG, "Error running batch commit", e) }

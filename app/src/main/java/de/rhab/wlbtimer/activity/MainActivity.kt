@@ -2,17 +2,6 @@ package de.rhab.wlbtimer.activity
 
 import android.content.Intent
 import android.os.Bundle
-import android.support.annotation.Keep
-import android.support.design.widget.NavigationView
-import android.support.design.widget.Snackbar
-import android.support.v4.view.GravityCompat
-import android.support.v4.widget.DrawerLayout
-import android.support.v7.app.ActionBar
-import android.support.v7.app.AlertDialog
-import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.helper.ItemTouchHelper
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -20,8 +9,17 @@ import android.view.View
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.annotation.Keep
+import androidx.appcompat.app.ActionBar
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.recyclerview.widget.ItemTouchHelper
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
+import com.google.android.material.navigation.NavigationView
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.*
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
@@ -49,6 +47,8 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
     private lateinit var fabStopRunning: View
 
     private lateinit var mAdapter: SessionAdapter
+
+    private lateinit var recyclerView: androidx.recyclerview.widget.RecyclerView
 
     private val db = FirebaseFirestore.getInstance()
 
@@ -103,7 +103,7 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
 
         setContentView(R.layout.activity_main)
 
-        val toolbar = findViewById<android.support.v7.widget.Toolbar>(R.id.toolbar)
+        val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
         val actionbar: ActionBar? = supportActionBar
         actionbar?.apply {
@@ -377,30 +377,39 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
                 .limit(remoteConfig.getLong(MAIN_LAST_N_ENTRIES))
 
         val options = FirestoreRecyclerOptions.Builder<Session>()
-                .setQuery(query, Session::class.java)
-                .build()
+            .setQuery(query, Session::class.java)
+            .build()
 
         mAdapter = SessionAdapter(options)
         Log.d(TAG, "Adapter: $mAdapter")
 
-        val recyclerView = findViewById<RecyclerView>(R.id.session_main_recycler_view)
+        recyclerView = findViewById(R.id.session_main_recycler_view)
         recyclerView.setHasFixedSize(true)
-        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.layoutManager =
+            androidx.recyclerview.widget.LinearLayoutManager(this)
         recyclerView.adapter = mAdapter
 
-        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0,
-                ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
-            override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder,
-                                target: RecyclerView.ViewHolder): Boolean {
+        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
+            0,
+            ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
+        ) {
+            override fun onMove(
+                recyclerView: androidx.recyclerview.widget.RecyclerView,
+                viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder,
+                target: androidx.recyclerview.widget.RecyclerView.ViewHolder
+            ): Boolean {
                 return false
             }
 
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+            override fun onSwiped(
+                viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder,
+                direction: Int
+            ) {
                 AlertDialog.Builder(viewHolder.itemView.context)
-                        .setTitle("Disabled")
-                        .setMessage("Deleting Session by swipe is currently disabled")
-                        .setPositiveButton(android.R.string.ok, null)
-                        .show()
+                    .setTitle("Disabled")
+                    .setMessage("Deleting Session by swipe is currently disabled")
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show()
                 mAdapter.notifyItemChanged(viewHolder.adapterPosition)   // ToDo(frennkie) this is "costly"
                 // mAdapter.deleteItem(viewHolder.adapterPosition)
             }
@@ -434,16 +443,15 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
         val mSessionRef = userRef.collection(Session.FBP).document()
 
         val mSession = Session(
-                // ToDo(frennkie) check for default Category
-                //session.category = Category(key?!, "Foobar")  <- from User!
-                tsStart = Session.getZonedDateTimeNow().toString(),
-                tsEnd = Session.getZonedDateTimeNow().toString(),
-                allDay = true,
-                note = null,
-                finished = true,
-                breaks = null,
-                category = mWlbUser!!.default_category_off,
-                objectId = mSessionRef.id  // additionally store push key
+            // ToDo(frennkie) check for default Category
+            //session.category = Category(key?!, "Foobar")  <- from User!
+            tsStart = Session.getZonedDateTimeNow().toString(),
+            tsEnd = Session.getZonedDateTimeNow().toString(),
+            allDay = true,
+            note = null,
+            finished = true,
+            breaks = null,
+            objectId = mSessionRef.id  // additionally store push key
         )
 
         Log.d(TAG, "mSession: $mSession")
@@ -451,27 +459,46 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
         val batch = db.batch()
         batch.set(mSessionRef, mSession.toMap())  // ToDo(frennkie) check
 
+        val defCategoryOff = mWlbUser!!.default_category_off
+        if (defCategoryOff != null) {
+            Log.d(TAG, "defCatO: $defCategoryOff")
+            batch.update(mSessionRef, Category.FBP, defCategoryOff.toMapNoSessions())
+            // also append new session to list on Category
+            batch.update(
+                userRef.collection(Category.FBP).document(defCategoryOff.objectId),
+                Session.FBP,
+                FieldValue.arrayUnion(mSessionRef.id)
+            )
+        }
+
         batch.commit()
-                .addOnFailureListener { e ->
-                    Log.w(TAG, "Failed to add new (Off) session! Error: ", e)
+            .addOnFailureListener { e ->
+                Log.w(TAG, "Failed to add new (Off) session! Error: ", e)
 
+            }
+            .addOnSuccessListener {
+                Log.d(TAG, "Successfully added new Session (Type: ${Category.TYPE_OFF})")
+
+                val mSnackbar = Snackbar.make(
+                    findViewById(R.id.main_content),
+                    "Added new Day Off!", Snackbar.LENGTH_LONG
+                )
+                mSnackbar.setAction("VIEW") {
+                    val sessionBottomDialogFragment = SessionBottomSheetFragment.newInstance()
+                    val bundle = Bundle()
+                    bundle.putString(SessionBottomSheetFragment.ARG_SESSION_ID, mSession.objectId)
+                    bundle.putString(SessionBottomSheetFragment.ARG_SESSION_TYPE, Category.TYPE_OFF)
+                    sessionBottomDialogFragment.arguments = bundle
+                    sessionBottomDialogFragment.show(
+                        supportFragmentManager,
+                        "session_dialog_fragment"
+                    )
                 }
-                .addOnSuccessListener {
-                    Log.d(TAG, "Successfully added new Session (Type: ${Category.TYPE_OFF})")
+                mSnackbar.show()
 
-                    val mSnackbar = Snackbar.make(findViewById(R.id.main_content),
-                            "Added new Day Off!", Snackbar.LENGTH_LONG)
-                    mSnackbar.setAction("VIEW") {
-                        val sessionBottomDialogFragment = SessionBottomSheetFragment.newInstance()
-                        val bundle = Bundle()
-                        bundle.putString(SessionBottomSheetFragment.ARG_SESSION_ID, mSession.objectId)
-                        bundle.putString(SessionBottomSheetFragment.ARG_SESSION_TYPE, Category.TYPE_OFF)
-                        sessionBottomDialogFragment.arguments = bundle
-                        sessionBottomDialogFragment.show(supportFragmentManager, "session_dialog_fragment")
-                    }
-                    mSnackbar.show()
+                recyclerView.layoutManager?.scrollToPosition(0)  // Scroll to Top
 
-                }
+            }
 
     }
 
@@ -504,6 +531,12 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
         if (defCategoryWork != null) {
             Log.d(TAG, "defCatW: $defCategoryWork")
             batch.update(mSessionRef, Category.FBP, defCategoryWork.toMapNoSessions())
+            // also append new session to list on Category
+            batch.update(
+                userRef.collection(Category.FBP).document(defCategoryWork.objectId),
+                Session.FBP,
+                FieldValue.arrayUnion(mSessionRef.id)
+            )
         }
 
         batch.commit()
@@ -519,12 +552,23 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
                     mSnackbar.setAction("VIEW") { _ ->
                         val sessionBottomDialogFragment = SessionBottomSheetFragment.newInstance()
                         val bundle = Bundle()
-                        bundle.putString(SessionBottomSheetFragment.ARG_SESSION_ID, mSession.objectId)
-                        bundle.putString(SessionBottomSheetFragment.ARG_SESSION_TYPE, Category.TYPE_WORK)
+                        bundle.putString(
+                            SessionBottomSheetFragment.ARG_SESSION_ID,
+                            mSession.objectId
+                        )
+                        bundle.putString(
+                            SessionBottomSheetFragment.ARG_SESSION_TYPE,
+                            Category.TYPE_WORK
+                        )
                         sessionBottomDialogFragment.arguments = bundle
-                        sessionBottomDialogFragment.show(supportFragmentManager, "session_dialog_fragment")
+                        sessionBottomDialogFragment.show(
+                            supportFragmentManager,
+                            "session_dialog_fragment"
+                        )
                     }
                     mSnackbar.show()
+
+                    recyclerView.layoutManager?.scrollToPosition(0)  // Scroll to Top
 
                 }
     }
@@ -557,6 +601,12 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
         if (defCategoryWork != null) {
             Log.d(TAG, "defCatW: $defCategoryWork")
             batch.update(mSessionRef, Category.FBP, defCategoryWork.toMapNoSessions())
+            // also append new session to list on Category
+            batch.update(
+                userRef.collection(Category.FBP).document(defCategoryWork.objectId),
+                Session.FBP,
+                FieldValue.arrayUnion(mSessionRef.id)
+            )
         }
 
         batch.commit()
@@ -573,14 +623,24 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
                     mSnackbar.setAction("VIEW") { _ ->
                         val sessionBottomDialogFragment = SessionBottomSheetFragment.newInstance()
                         val bundle = Bundle()
-                        bundle.putString(SessionBottomSheetFragment.ARG_SESSION_ID, mSession.objectId)
-                        bundle.putString(SessionBottomSheetFragment.ARG_SESSION_TYPE, Category.TYPE_WORK)
+                        bundle.putString(
+                            SessionBottomSheetFragment.ARG_SESSION_ID,
+                            mSession.objectId
+                        )
+                        bundle.putString(
+                            SessionBottomSheetFragment.ARG_SESSION_TYPE,
+                            Category.TYPE_WORK
+                        )
                         sessionBottomDialogFragment.arguments = bundle
-                        sessionBottomDialogFragment.show(supportFragmentManager, "session_dialog_fragment")
+                        sessionBottomDialogFragment.show(
+                            supportFragmentManager,
+                            "session_dialog_fragment"
+                        )
                     }
 
                     mSnackbar.show()
 
+                    recyclerView.layoutManager?.scrollToPosition(0)  // Scroll to Top
                 }
 
     }
@@ -645,15 +705,26 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
                                     val mSnackbar = Snackbar.make(findViewById(R.id.main_content),
                                             "finished Session (${mSession.getDurationWeightedExcludingBreaks()})", Snackbar.LENGTH_LONG)
                                     mSnackbar.setAction("VIEW") { _ ->
-                                        val sessionBottomDialogFragment = SessionBottomSheetFragment.newInstance()
+                                        val sessionBottomDialogFragment =
+                                            SessionBottomSheetFragment.newInstance()
                                         val bundle = Bundle()
-                                        bundle.putString(SessionBottomSheetFragment.ARG_SESSION_ID, mSession.objectId)
-                                        bundle.putString(SessionBottomSheetFragment.ARG_SESSION_TYPE, Category.TYPE_WORK)
+                                        bundle.putString(
+                                            SessionBottomSheetFragment.ARG_SESSION_ID,
+                                            mSession.objectId
+                                        )
+                                        bundle.putString(
+                                            SessionBottomSheetFragment.ARG_SESSION_TYPE,
+                                            Category.TYPE_WORK
+                                        )
                                         sessionBottomDialogFragment.arguments = bundle
-                                        sessionBottomDialogFragment.show(supportFragmentManager, "session_dialog_fragment")
+                                        sessionBottomDialogFragment.show(
+                                            supportFragmentManager,
+                                            "session_dialog_fragment"
+                                        )
                                     }
                                     mSnackbar.show()
 
+                                    recyclerView.layoutManager?.scrollToPosition(0)  // Scroll to Top
 
                                 }
                     }

@@ -3,11 +3,11 @@ package de.rhab.wlbtimer.fragment
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.support.annotation.Keep
-import android.support.design.widget.Snackbar
-import android.support.v7.preference.Preference
-import android.support.v7.preference.PreferenceFragmentCompat
 import android.util.Log
+import androidx.annotation.Keep
+import androidx.preference.Preference
+import androidx.preference.PreferenceFragmentCompat
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import de.rhab.wlbtimer.BuildConfig
@@ -36,8 +36,7 @@ class HelpPrefFragment : PreferenceFragmentCompat() {
 
         addPreferencesFromResource(R.xml.pref_help)
 
-
-        var mUrl: String? = null
+        var mUrl: String?
         val prefHelpHomepage = findPreference(getString(R.string.pref_help_homepage_key))
 
         val metaPublicRef = db.collection("metadata").document("public")

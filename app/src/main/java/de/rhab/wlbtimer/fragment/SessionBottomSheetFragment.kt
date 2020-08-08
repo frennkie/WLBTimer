@@ -6,14 +6,14 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
-import android.support.annotation.Keep
-import android.support.design.widget.BottomSheetDialogFragment
-import android.support.v7.app.AlertDialog
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.annotation.Keep
+import androidx.appcompat.app.AlertDialog
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
@@ -123,138 +123,138 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
 
         // get user Document (get default values and other settings)
         userRef.get()
-                .addOnFailureListener { e ->
-                    Log.d(TAG, "get failed with ", e)
-                }
-                .addOnSuccessListener { documentSnapshot ->
-                    val mWlbUser = documentSnapshot.toObject(WlbUser::class.java)!!
-                    defBreak = mWlbUser.default_break ?: 60 * 45
-                    defCategoryOff = mWlbUser.default_category_off
-                    defCategoryWork = mWlbUser.default_category_work
-                }
+            .addOnFailureListener { e ->
+                Log.d(TAG, "get failed with ", e)
+            }
+            .addOnSuccessListener { documentSnapshot ->
+                val mWlbUser = documentSnapshot.toObject(WlbUser::class.java)!!
+                defBreak = mWlbUser.default_break ?: 60 * 45
+                defCategoryOff = mWlbUser.default_category_off
+                defCategoryWork = mWlbUser.default_category_work
+            }
 
 
         // get Categories (either Work or Off type)
         mArrayListCategory = ArrayList()
         mCategoryColRef
-                .whereEqualTo("type", mType)
-                .get()
-                .addOnFailureListener { e ->
-                    Log.d(TAG, "get failed with ", e)
+            .whereEqualTo("type", mType)
+            .get()
+            .addOnFailureListener { e ->
+                Log.d(TAG, "get failed with ", e)
+            }
+            .addOnSuccessListener { docSnapshotCategory ->
+                Log.d(TAG, "Number of category ($mType) entries: ${docSnapshotCategory.count()}")
+
+                for (document in docSnapshotCategory) {
+                    Log.d(TAG, document.id + " => " + document.data)
+                    val mCategory = document.toObject(Category::class.java)
+
+                    mCategoryList[mCategory.objectId] = mCategory
+
+                    val tran = LinkedHashMap<String, String>()
+                    tran["title"] = mCategory.title
+                    tran["objectId"] = mCategory.objectId
+                    mArrayListCategory.add(tran)
+
                 }
-                .addOnSuccessListener { docSnapshotCategory ->
-                    Log.d(TAG, "Number of category ($mType) entries: ${docSnapshotCategory.count()}")
 
-                    for (document in docSnapshotCategory) {
-                        Log.d(TAG, document.id + " => " + document.data)
-                        val mCategory = document.toObject(Category::class.java)
+                Log.d(TAG, "listCategory ($mType): $mArrayListCategory")
 
-                        mCategoryList[mCategory.objectId] = mCategory
-
-                        val tran = LinkedHashMap<String, String>()
-                        tran["title"] = mCategory.title
-                        tran["objectId"] = mCategory.objectId
-                        mArrayListCategory.add(tran)
-
-                    }
-
-                    Log.d(TAG, "listCategory ($mType): $mArrayListCategory")
-
-                }  // End of mCategoryColRef.get()
+            }  // End of mCategoryColRef.get()
 
 
         // get Session Object - this has to wait for Categories to be loaded
         mSessionRef.get()
-                .addOnFailureListener { e ->
-                    Log.d(TAG, "get failed with ", e)
+            .addOnFailureListener { e ->
+                Log.d(TAG, "get failed with ", e)
+            }
+            .addOnSuccessListener { documentSnapshot ->
+                if (documentSnapshot != null) {
+                    mSession = documentSnapshot.toObject(Session::class.java)
+                    Log.d(TAG, "found: $mSession")
+                } else {
+                    Log.w(TAG, "No such document")
                 }
-                .addOnSuccessListener { documentSnapshot ->
-                    if (documentSnapshot != null) {
-                        mSession = documentSnapshot.toObject(Session::class.java)
-                        Log.d(TAG, "found: $mSession")
+
+                if (mSession != null) {
+
+                    if (mSession!!.allDay) {
+                        llStart.visibility = View.VISIBLE
+                        tvStartSymbol.visibility = View.GONE
+                        tvStartSymbolAllDay.visibility = View.VISIBLE
+                        tvStartDate.visibility = View.VISIBLE
+                        tvStartTime.visibility = View.GONE
+
+                        llEnd.visibility = View.GONE
+                        llBreaks.visibility = View.GONE
+                        llDuration.visibility = View.GONE
+                        llNote.visibility = View.VISIBLE
+                        llCategory.visibility = View.VISIBLE
                     } else {
-                        Log.w(TAG, "No such document")
+                        llStart.visibility = View.VISIBLE
+                        tvStartSymbol.visibility = View.VISIBLE
+                        tvStartSymbolAllDay.visibility = View.GONE
+                        tvStartDate.visibility = View.VISIBLE
+                        tvStartTime.visibility = View.VISIBLE
+
+                        llEnd.visibility = View.VISIBLE
+                        llBreaks.visibility = View.VISIBLE
+                        llDuration.visibility = View.VISIBLE
+                        llNote.visibility = View.VISIBLE
+                        llCategory.visibility = View.VISIBLE
                     }
 
-                    if (mSession != null) {
+                    if (mSession!!.tsStart != null) {
+                        tvStartDate.text = mSession!!.getDateStart()
+                        tvStartTime.text = mSession!!.getTimeZonedStart()
+                    } else {
+                        tvStartDate.text = "..."
+                        tvStartTime.text = "..."
+                    }
 
-                        if (mSession!!.allDay) {
-                            llStart.visibility = View.VISIBLE
-                            tvStartSymbol.visibility = View.GONE
-                            tvStartSymbolAllDay.visibility = View.VISIBLE
-                            tvStartDate.visibility = View.VISIBLE
-                            tvStartTime.visibility = View.GONE
+                    if (mSession!!.tsEnd != null) {
+                        tvEndDate.text = mSession!!.getDateEnd()
+                        tvEndTime.text = mSession!!.getTimeZonedEnd()
+                    } else {
+                        tvEndDate.text = "..."
+                        tvEndTime.text = "..."
+                    }
 
-                            llEnd.visibility = View.GONE
-                            llBreaks.visibility = View.GONE
-                            llDuration.visibility = View.GONE
-                            llNote.visibility = View.VISIBLE
-                            llCategory.visibility = View.VISIBLE
-                        } else {
-                            llStart.visibility = View.VISIBLE
-                            tvStartSymbol.visibility = View.VISIBLE
-                            tvStartSymbolAllDay.visibility = View.GONE
-                            tvStartDate.visibility = View.VISIBLE
-                            tvStartTime.visibility = View.VISIBLE
+                    tvBreaks.text = mSession!!.getTotalBreakTime()
 
-                            llEnd.visibility = View.VISIBLE
-                            llBreaks.visibility = View.VISIBLE
-                            llDuration.visibility = View.VISIBLE
-                            llNote.visibility = View.VISIBLE
-                            llCategory.visibility = View.VISIBLE
-                        }
+                    if (mSession!!.note != null) {
+                        tvNote.text = mSession!!.note
+                    } else {
+                        tvNote.text = "N/A"  // ToDo(frennkie) special format?!
+                    }
 
-                        if (mSession!!.tsStart != null) {
-                            tvStartDate.text = mSession!!.getDateStart()
-                            tvStartTime.text = mSession!!.getTimeZonedStart()
-                        } else {
-                            tvStartDate.text = "..."
-                            tvStartTime.text = "..."
-                        }
-
-                        if (mSession!!.tsEnd != null) {
-                            tvEndDate.text = mSession!!.getDateEnd()
-                            tvEndTime.text = mSession!!.getTimeZonedEnd()
-                        } else {
-                            tvEndDate.text = "..."
-                            tvEndTime.text = "..."
-                        }
-
-                        tvBreaks.text = mSession!!.getTotalBreakTime()
-
-                        if (mSession!!.note != null) {
-                            tvNote.text = mSession!!.note
-                        } else {
-                            tvNote.text = "N/A"  // ToDo(frennkie) special format?!
-                        }
-
-                        val mCategoryWork = mSession!!.category
-                        Log.d(TAG, "result $mCategoryWork")
+                    val mCategoryWork = mSession!!.category
+                    Log.d(TAG, "result $mCategoryWork")
 
 
-                        if (mCategoryWork != null) {
-                            tvCategory.text = mCategoryWork.title
+                    if (mCategoryWork != null) {
+                        tvCategory.text = mCategoryWork.title
 
-                            tvCategoryIcon.text = mCategoryWork.title.substring(0, 1)
-                            val mColor = Color.parseColor(mCategoryWork.color)
-                            mTvCategoryIconBackground.setColor(mColor)
+                        tvCategoryIcon.text = mCategoryWork.title.substring(0, 1)
+                        val mColor = Color.parseColor(mCategoryWork.color)
+                        mTvCategoryIconBackground.setColor(mColor)
 
-                            tvDuration.text = mSession!!.getDurationWeightedExcludingBreaks()
-                        } else {
+                        tvDuration.text = mSession!!.getDurationWeightedExcludingBreaks()
+                    } else {
 
-                            tvCategory.text = "N/A"
+                        tvCategory.text = "N/A"
 
-                            tvCategoryIcon.text = "-"
-                            val mColor = Color.parseColor("#666666")
-                            mTvCategoryIconBackground.setColor(mColor)
+                        tvCategoryIcon.text = "-"
+                        val mColor = Color.parseColor("#666666")
+                        mTvCategoryIconBackground.setColor(mColor)
 
-                            tvDuration.text = mSession!!.getDurationWeightedExcludingBreaks()
-
-                        }
+                        tvDuration.text = mSession!!.getDurationWeightedExcludingBreaks()
 
                     }
 
-                }  // End of mSessionRef.get()
+                }
+
+            }  // End of mSessionRef.get()
 
 
         //handle clicks
@@ -265,7 +265,8 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
             val startDateTime: ZonedDateTime = Session.fromDefaultStr(mSession!!.tsStart!!)!!
 
             val dateSetListener = DatePickerDialog.OnDateSetListener { _, year, month, day ->
-                val newStartDateTime: ZonedDateTime = startDateTime.withYear(year).withMonth(month + 1).withDayOfMonth(day)
+                val newStartDateTime: ZonedDateTime =
+                    startDateTime.withYear(year).withMonth(month + 1).withDayOfMonth(day)
                 // update db
                 mSession!!.tsStart = newStartDateTime.toString()
                 mSessionRef.set(mSession!!.toMap())
@@ -274,7 +275,13 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
                 tvDuration.text = mSession!!.getDurationWeightedExcludingBreaks()
             }
 
-            DatePickerDialog(context!!, dateSetListener, startDateTime.year, startDateTime.monthValue - 1, startDateTime.dayOfMonth).show()
+            DatePickerDialog(
+                context!!,
+                dateSetListener,
+                startDateTime.year,
+                startDateTime.monthValue - 1,
+                startDateTime.dayOfMonth
+            ).show()
 
         }
 
@@ -306,7 +313,8 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
                 val endDateTime: ZonedDateTime = Session.fromDefaultStr(mSession!!.tsEnd!!)!!
 
                 val dateSetListener = DatePickerDialog.OnDateSetListener { _, year, month, day ->
-                    val newEndDateTime: ZonedDateTime = endDateTime.withYear(year).withMonth(month + 1).withDayOfMonth(day)
+                    val newEndDateTime: ZonedDateTime =
+                        endDateTime.withYear(year).withMonth(month + 1).withDayOfMonth(day)
                     // update db
                     mSession!!.tsEnd = newEndDateTime.toString()
                     mSessionRef.set(mSession!!.toMap())
@@ -315,7 +323,13 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
                     tvDuration.text = mSession!!.getDurationWeightedExcludingBreaks()
                 }
 
-                DatePickerDialog(context!!, dateSetListener, endDateTime.year, endDateTime.monthValue - 1, endDateTime.dayOfMonth).show()
+                DatePickerDialog(
+                    context!!,
+                    dateSetListener,
+                    endDateTime.year,
+                    endDateTime.monthValue - 1,
+                    endDateTime.dayOfMonth
+                ).show()
             }
 
         }
@@ -414,22 +428,28 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
             numberList = ListPopupWindow(context!!)
             numberList.anchorView = tvCategory
 
-            val adapter = SimpleAdapter(context, mArrayListCategory,
-                    android.R.layout.simple_spinner_dropdown_item,
-                    arrayOf("title"),
-                    intArrayOf(android.R.id.text1))
+            val adapter = SimpleAdapter(
+                context, mArrayListCategory,
+                android.R.layout.simple_spinner_dropdown_item,
+                arrayOf("title"),
+                intArrayOf(android.R.id.text1)
+            )
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             numberList.setAdapter(adapter)
 
             numberList.setOnItemClickListener { _, _, position, _ ->
-                Log.d(TAG, "listCW: $mArrayListCategory; p: $position; listCW[p]:${mArrayListCategory[position]}")
+                Log.d(
+                    TAG,
+                    "listCW: $mArrayListCategory; p: $position; listCW[p]:${mArrayListCategory[position]}"
+                )
                 val map = mArrayListCategory[position]
                 val mCategoryObjectId = map["objectId"]!!
                 val mCategory = mCategoryList[mCategoryObjectId]!!
 
                 // store possible old Category objectId
                 var mOldCategoryObjectId: String? = null
-                if (mSession!!.category?.objectId != null) mOldCategoryObjectId = mSession!!.category!!.objectId
+                if (mSession!!.category?.objectId != null) mOldCategoryObjectId =
+                    mSession!!.category!!.objectId
 
                 val batch = db.batch()
 
@@ -444,28 +464,30 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
                 if (mOldCategoryObjectId != null) {
                     // if a different category was selected remove Session entry from old category
                     if (mOldCategoryObjectId != mCategoryObjectId) {
-                        batch.update(userRef.collection(Category.FBP).document(mOldCategoryObjectId),
-                                Session.FBP, FieldValue.arrayRemove(mSession!!.objectId))
+                        batch.update(
+                            userRef.collection(Category.FBP).document(mOldCategoryObjectId),
+                            Session.FBP, FieldValue.arrayRemove(mSession!!.objectId)
+                        )
                         Log.d(TAG, "removed from array on Category")
                     }
                 }
 
                 // execute bulk update
                 batch.commit()
-                        .addOnFailureListener { e ->
-                            Log.w(TAG, "Failed to set/update Category! Error: ", e)
-                            // this catches the error.. may be do something with this?! UI does reflect the
-                            // intended change until refresh!
-                        }
-                        .addOnSuccessListener { _ ->
-                            Log.d(TAG, "Category set/updated - update UI")
+                    .addOnFailureListener { e ->
+                        Log.w(TAG, "Failed to set/update Category! Error: ", e)
+                        // this catches the error.. may be do something with this?! UI does reflect the
+                        // intended change until refresh!
+                    }
+                    .addOnSuccessListener { _ ->
+                        Log.d(TAG, "Category set/updated - update UI")
 
-                            tvCategory.text = mCategory.title
-                            tvCategoryIcon.text = mCategory.title.substring(0, 1)
-                            mTvCategoryIconBackground.setColor(Color.parseColor(mCategory.color))
+                        tvCategory.text = mCategory.title
+                        tvCategoryIcon.text = mCategory.title.substring(0, 1)
+                        mTvCategoryIconBackground.setColor(Color.parseColor(mCategory.color))
 
-                            tvDuration.text = mSession!!.getDurationWeightedExcludingBreaks()
-                        }
+                        tvDuration.text = mSession!!.getDurationWeightedExcludingBreaks()
+                    }
 
                 numberList.dismiss()
             }
@@ -481,11 +503,28 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
             mBuilder.setTitle("Delete this entry?")
 
             if (mSession!!.finished) {
-                mBuilder.setMessage("Are you sure you want to delete the entry started at " +
-                        "${mSession!!.getDateStart()} ${mSession!!.getTimeStart()}\n")
+                mBuilder.setMessage(
+                    "Are you sure you want to delete the entry started at " +
+                            "${mSession!!.getDateStart()} ${mSession!!.getTimeStart()}\n"
+                )
 
                 mBuilder.setPositiveButton("Delete") { _, _ ->
                     userRef.collection(Session.FBP).document(mSession!!.objectId!!).delete()
+
+                    if (mSession!!.category != null) {
+                        db.batch().update(
+                            userRef.collection(Category.FBP)
+                                .document(mSession!!.category!!.objectId),
+                            Session.FBP, FieldValue.arrayRemove(mSession!!.objectId)
+                        ).commit()
+                            .addOnFailureListener { e ->
+                                Log.w(TAG, "Failed to remove Session from Category! Error: ", e)
+                            }
+                            .addOnSuccessListener { _ ->
+                                Log.d(TAG, "removed Session from Category")
+                            }
+                    }
+
                     dismiss()
                 }
 
@@ -498,16 +537,24 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
                     batch.update(userRef, Session.FBP_SESSION_RUNNING, FieldValue.delete())
                     batch.delete(userRef.collection(Session.FBP).document(mSession!!.objectId!!))
 
+                    if (mSession!!.category != null) {
+                        batch.update(
+                            userRef.collection(Category.FBP)
+                                .document(mSession!!.category!!.objectId),
+                            Session.FBP, FieldValue.arrayRemove(mSession!!.objectId)
+                        )
+                    }
+
                     // execute bulk update
                     batch.commit()
-                            .addOnFailureListener { e ->
-                                Log.w(TAG, "Failed to start new session! Error: ", e)
-                                // this catches the error.. may be do something with this?! UI does reflect the
-                                // intended change until refresh!
-                            }
-                            .addOnSuccessListener { _ ->
-                                Log.d(TAG, "updateChildren done")
-                            }
+                        .addOnFailureListener { e ->
+                            Log.w(TAG, "Failed to start new session! Error: ", e)
+                            // this catches the error.. may be do something with this?! UI does reflect the
+                            // intended change until refresh!
+                        }
+                        .addOnSuccessListener { _ ->
+                            Log.d(TAG, "updateChildren done")
+                        }
 
                     dismiss()
                 }
@@ -531,23 +578,14 @@ class SessionBottomSheetFragment : BottomSheetDialogFragment() {
         fun onOptionClick(text: String)
     }
 
-    override fun onAttach(context: Context?) {
+    override fun onAttach(context: Context) {
         super.onAttach(context)
 
         try {
             mBottomSheetListener = context as BottomSheetListener?
         } catch (e: ClassCastException) {
-            throw ClassCastException(context!!.toString())
+            throw ClassCastException(context.toString())
         }
-    }
-
-    override fun onStart() {
-        super.onStart()
-
-    }
-
-    override fun onStop() {
-        super.onStop()
     }
 
     companion object {

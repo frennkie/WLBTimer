@@ -1,6 +1,6 @@
 package de.rhab.wlbtimer.model
 
-import android.support.annotation.Keep
+import androidx.annotation.Keep
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.IgnoreExtraProperties
 
@@ -127,7 +127,7 @@ data class Session(
     @Exclude
     fun getDateStart(): String {
         return if (this.tsStart != null) {
-            Session.toDateStr(ZonedDateTime.parse(this.tsStart))
+            toDateStr(ZonedDateTime.parse(this.tsStart))
         } else {
             return "..."
         }
@@ -136,7 +136,7 @@ data class Session(
     @Exclude
     fun getDateStartWithWeekday(): String {
         return if (this.tsStart != null) {
-            val dateString = Session.toDateStr(ZonedDateTime.parse(this.tsStart)).subSequence(5, 10)
+            val dateString = toDateStr(ZonedDateTime.parse(this.tsStart)).subSequence(5, 10)
 
             val zDT = ZonedDateTime.parse(this.tsStart)
             val weekday = zDT.dayOfWeek.name.substring(0, 2).toLowerCase().capitalize()
@@ -150,7 +150,7 @@ data class Session(
     @Exclude
     fun getDateEnd(): String {
         return if (this.tsStart != null) {
-            Session.toDateStr(ZonedDateTime.parse(this.tsEnd))
+            toDateStr(ZonedDateTime.parse(this.tsEnd))
         } else {
             return "..."
         }
@@ -159,7 +159,7 @@ data class Session(
     @Exclude
     fun getTimeStart(): String {
         return if (this.tsStart != null) {
-            Session.toTimeStr(ZonedDateTime.parse(this.tsStart))
+            toTimeStr(ZonedDateTime.parse(this.tsStart))
         } else {
             return "..."
         }
@@ -168,7 +168,7 @@ data class Session(
     @Exclude
     fun getTimeZonedStart(): String {
         return if (this.tsStart != null) {
-            Session.toTimeZonedStr(ZonedDateTime.parse(this.tsStart))
+            toTimeZonedStr(ZonedDateTime.parse(this.tsStart))
         } else {
             return "..."
         }
@@ -177,7 +177,7 @@ data class Session(
     @Exclude
     fun getTimeEnd(): String {
         return if (this.tsEnd != null) {
-            Session.toTimeStr(ZonedDateTime.parse(this.tsEnd))
+            toTimeStr(ZonedDateTime.parse(this.tsEnd))
         } else {
             return "..."
         }
@@ -186,7 +186,7 @@ data class Session(
     @Exclude
     fun getTimeZonedEnd(): String {
         return if (this.tsEnd != null) {
-            Session.toTimeZonedStr(ZonedDateTime.parse(this.tsEnd))
+            toTimeZonedStr(ZonedDateTime.parse(this.tsEnd))
         } else {
             return "..."
         }

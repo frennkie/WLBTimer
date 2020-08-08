@@ -15,19 +15,19 @@
       },
       "oauth_client": [
         {
-          "client_id": "6641805721-6mgrsvj8ooc3f73tef8evot7ca1vqp6c.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "de.rhab.wlbtimer",
-            "certificate_hash": "e4961a59c4eaf17e5d0e1e803c931ab0f0c183b5"
-          }
-        },
-        {
           "client_id": "6641805721-jn3viom1dbddblnlhrj2upnl6rje7fib.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "de.rhab.wlbtimer",
             "certificate_hash": "f3c6351038680b09ee9d71c4717caaad62a5807c"
+          }
+        },
+        {
+          "client_id": "6641805721-6mgrsvj8ooc3f73tef8evot7ca1vqp6c.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "de.rhab.wlbtimer",
+            "certificate_hash": "e4961a59c4eaf17e5d0e1e803c931ab0f0c183b5"
           }
         },
         {
@@ -41,20 +41,13 @@
         }
       ],
       "services": {
-        "analytics_service": {
-          "status": 1
-        },
         "appinvite_service": {
-          "status": 2,
           "other_platform_oauth_client": [
             {
               "client_id": "6641805721-b3vm74sfva2gmasg684lbtlpsqk573b9.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
-        },
-        "ads_service": {
-          "status": 2
         }
       }
     }

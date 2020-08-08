@@ -2,8 +2,8 @@ package de.rhab.wlbtimer.activity
 
 import android.content.Intent
 import android.os.Bundle
-import android.support.annotation.Keep
-import android.support.v7.app.AppCompatActivity
+import androidx.annotation.Keep
+import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
 import de.rhab.wlbtimer.R
 import kotlinx.android.synthetic.main.activity_breaks.*

@@ -2,13 +2,13 @@ package de.rhab.wlbtimer
 
 import android.content.Context
 import android.os.Handler
-import android.support.design.widget.CoordinatorLayout
-import android.support.design.widget.FloatingActionButton
-import android.support.v4.view.ViewCompat
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
 import android.view.animation.LinearInterpolator
+import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.view.ViewCompat
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 /*
 Source https://stackoverflow.com/questions/31617398/floatingactionbutton-hide-on-list-scroll
@@ -21,7 +21,7 @@ Caution: Prevents auto move of FAB for Snackbar
 class FabBehaviour : CoordinatorLayout.Behavior<FloatingActionButton> {
     private var mHandler: Handler? = null
 
-    constructor(context: Context, attrs: AttributeSet) : super() {}
+    constructor(context: Context, attrs: AttributeSet) : super()
 
     constructor() : super()
 
