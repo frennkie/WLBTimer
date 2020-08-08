@@ -2,17 +2,17 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 ext.versionMajor = 0
-ext.versionMinor = 20
+ext.versionMinor = 21
 ext.versionPatch = 0
 ext.versionClassifier = null
-ext.isDev = false
+ext.isDev = true
 ext.minimumSdkVersion = 23
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
     defaultConfig {
         applicationId "de.rhab.wlbtimer"
-        targetSdkVersion 28
+        targetSdkVersion 29
 
         minSdkVersion project.ext.minimumSdkVersion
         versionCode generateVersionCode() // 230010203
