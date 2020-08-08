@@ -2,10 +2,10 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 ext.versionMajor = 0
-ext.versionMinor = 18
-ext.versionPatch = 1
+ext.versionMinor = 20
+ext.versionPatch = 0
 ext.versionClassifier = null
-ext.isDev = true
+ext.isDev = false
 ext.minimumSdkVersion = 23
 
 android {
@@ -30,6 +30,11 @@ android {
             //proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    buildToolsVersion '29.0.2'
 }
 
 // https://medium.com/@maxirosson/versioning-android-apps-d6ec171cfd82
