@@ -3,9 +3,9 @@ apply plugin: 'kotlin-android'
 
 ext.versionMajor = 0
 ext.versionMinor = 21
-ext.versionPatch = 0
+ext.versionPatch = 1
 ext.versionClassifier = null
-ext.isDev = true
+ext.isDev = false
 ext.minimumSdkVersion = 23
 
 android {
