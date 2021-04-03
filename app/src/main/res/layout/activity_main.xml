@@ -49,24 +49,24 @@
                 app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
                 <TextView
-                    android:id="@+id/tv_main_header_foo3"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text="Foo"
-                    android:textAlignment="center" />
+                        android:id="@+id/tv_main_header_left"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="@string/top_left"
+                        android:textAlignment="center" />
 
                 <TextView
-                    android:id="@+id/tv_main_header_foobar3"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text="Foobar"
-                    android:textAlignment="center" />
+                        android:id="@+id/tv_main_header_right"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="@string/top_right"
+                        android:textAlignment="center" />
 
             </LinearLayout>
 
@@ -79,14 +79,14 @@
                 app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
                 <TextView
-                    android:id="@+id/tv_main_header_last_n_entries"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                        android:ellipsize="end"
+                        android:id="@+id/tv_main_header_last_n_entries"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
                         android:layout_marginStart="4dp"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
                         android:maxLines="1"
-                        android:text="Last X Entries"
+                        android:text="@string/last_n_entries"
                         android:textAlignment="viewStart" />
             </LinearLayout>
 
@@ -111,6 +111,7 @@
                 android:layout_gravity="bottom|end"
                 android:layout_marginEnd="@dimen/activity_horizontal_margin"
                 android:layout_marginBottom="@dimen/activity_vertical_margin"
+                android:contentDescription="@string/cd_btn_start_new"
                 app:srcCompat="@drawable/ic_play_arrow_black_24dp" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -120,6 +121,7 @@
                 android:layout_gravity="bottom|end"
                 android:layout_marginEnd="@dimen/activity_horizontal_margin"
                 android:layout_marginBottom="@dimen/activity_vertical_margin"
+                android:contentDescription="@string/cd_btn_end_running"
                 app:backgroundTint="@color/colorAccent"
                 app:srcCompat="@drawable/ic_stop_black_24dp" />
 

@@ -34,6 +34,7 @@ import de.rhab.wlbtimer.model.Session
 import de.rhab.wlbtimer.model.WlbUser
 
 
+
 @Keep
 class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheetListener {
 
@@ -266,10 +267,13 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
         remoteConfig.setDefaults(R.xml.remote_config_defaults)
         // [END set_default_values]
 
-
-        val lastNEntries = findViewById<TextView>(R.id.tv_main_header_last_n_entries)
-        lastNEntries.text = "Last ${remoteConfig.getString(MAIN_LAST_N_ENTRIES)} Entries"
-
+        val lastNEntries =
+            findViewById<TextView>(de.rhab.wlbtimer.R.id.tv_main_header_last_n_entries)
+        // lastNEntries.text = "Last ${remoteConfig.getString(MAIN_LAST_N_ENTRIES)} Entries"
+        lastNEntries.text = getString(
+            R.string.last_n_entries,
+            remoteConfig.getString(MAIN_LAST_N_ENTRIES)
+        )
 
         val isUsingDeveloperMode = remoteConfig.info.configSettings.isDeveloperModeEnabled
 
@@ -423,7 +427,10 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
                 if (session.allDay) {
                     bundle.putString(SessionBottomSheetFragment.ARG_SESSION_TYPE, Category.TYPE_OFF)
                 } else {
-                    bundle.putString(SessionBottomSheetFragment.ARG_SESSION_TYPE, Category.TYPE_WORK)
+                    bundle.putString(
+                        SessionBottomSheetFragment.ARG_SESSION_TYPE,
+                        Category.TYPE_WORK
+                    )
                 }
                 bundle.putString(SessionBottomSheetFragment.ARG_SESSION_ID, session.objectId)
 
@@ -509,17 +516,17 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
         val mSessionRef = userRef.collection(Session.FBP).document()
 
         val mSession = Session(
-                // ToDo(frennkie) check for default Category
-                //session.category = Category(key?!, "Foobar")  <- from User!
-                tsStart = Session.getZonedDateTimeNow().minusHours(8).toString(),
-                tsEnd = Session.getZonedDateTimeNow().toString(),
-                allDay = false,
-                note = null,
-                finished = true,
-                breaks = mutableListOf(
-                        Break(comment = "Default Break", duration = defBreak!!)
-                ),
-                objectId = mSessionRef.id  // additionally store push key
+            // ToDo(frennkie) check for default Category
+            //session.category = Category(key?!, "Foobar")  <- from User!
+            tsStart = Session.getZonedDateTimeNow().minusHours(8).toString(),
+            tsEnd = Session.getZonedDateTimeNow().toString(),
+            allDay = false,
+            note = null,
+            finished = true,
+            breaks = mutableListOf(
+                Break(comment = "Default Break", duration = defBreak!!)
+            ),
+            objectId = mSessionRef.id  // additionally store push key
         )
 
         Log.d(TAG, "mSession: $mSession")
@@ -547,8 +554,10 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
                 .addOnSuccessListener {
                     Log.d(TAG, "Successfully added new Session (Type: ${Category.TYPE_WORK})")
 
-                    val mSnackbar = Snackbar.make(findViewById(R.id.main_content),
-                            "Added new session!", Snackbar.LENGTH_LONG)
+                    val mSnackbar = Snackbar.make(
+                        findViewById(R.id.main_content),
+                        "Added new session!", Snackbar.LENGTH_LONG
+                    )
                     mSnackbar.setAction("VIEW") { _ ->
                         val sessionBottomDialogFragment = SessionBottomSheetFragment.newInstance()
                         val bundle = Bundle()
@@ -578,13 +587,13 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
         val mSessionRef = userRef.collection(Session.FBP).document()
 
         val mSession = Session(
-                // ToDo(frennkie) check for default Category
-                //session.category = Category(key?!, "Foobar")
-                tsStart = Session.getZonedDateTimeNow().toString(),
-                tsEnd = null,
-                allDay = false,
-                finished = false,
-                objectId = mSessionRef.id  // additionally store push key
+            // ToDo(frennkie) check for default Category
+            //session.category = Category(key?!, "Foobar")
+            tsStart = Session.getZonedDateTimeNow().toString(),
+            tsEnd = null,
+            allDay = false,
+            finished = false,
+            objectId = mSessionRef.id  // additionally store push key
         )
 
         Log.d(TAG, "mSession: $mSession")
@@ -618,8 +627,10 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
                 .addOnSuccessListener {
                     Log.d(TAG, "Successfully started new Session")
 
-                    val mSnackbar = Snackbar.make(findViewById(R.id.main_content),
-                            "started new Session...", Snackbar.LENGTH_LONG)
+                    val mSnackbar = Snackbar.make(
+                        findViewById(R.id.main_content),
+                        "started new Session...", Snackbar.LENGTH_LONG
+                    )
                     mSnackbar.setAction("VIEW") { _ ->
                         val sessionBottomDialogFragment = SessionBottomSheetFragment.newInstance()
                         val bundle = Bundle()
@@ -684,8 +695,12 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
 
                         if (mSession.breaks == null) {
                             val mDefaultBreak = Break(comment = "Default Break")
-                            val mBreakDuration = mDefaultBreak.applyBreakRules(mSession.getDurationLong())
-                            Log.d(TAG, "no breaks present - adding according to rules (length: $mBreakDuration)")
+                            val mBreakDuration =
+                                mDefaultBreak.applyBreakRules(mSession.getDurationLong())
+                            Log.d(
+                                TAG,
+                                "no breaks present - adding according to rules (length: $mBreakDuration)"
+                            )
                             mDefaultBreak.duration = mBreakDuration.toInt()
                             mSession.breaks = mutableListOf(mDefaultBreak)
                         }
@@ -702,8 +717,11 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
                                 .addOnSuccessListener {
                                     Log.d(TAG, "success!")
 
-                                    val mSnackbar = Snackbar.make(findViewById(R.id.main_content),
-                                            "finished Session (${mSession.getDurationWeightedExcludingBreaks()})", Snackbar.LENGTH_LONG)
+                                    val mSnackbar = Snackbar.make(
+                                        findViewById(R.id.main_content),
+                                        "finished Session (${mSession.getDurationWeightedExcludingBreaks()})",
+                                        Snackbar.LENGTH_LONG
+                                    )
                                     mSnackbar.setAction("VIEW") { _ ->
                                         val sessionBottomDialogFragment =
                                             SessionBottomSheetFragment.newInstance()
@@ -768,7 +786,9 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
 
                             snapshot.data?.get(Session.FBP_SESSION_RUNNING).toString()
                             Log.d(TAG, "monitorSessionRunning found running session")
-                            setUiSessionRunning(snapshot.data?.get(Session.FBP_SESSION_RUNNING).toString())
+                            setUiSessionRunning(
+                                snapshot.data?.get(Session.FBP_SESSION_RUNNING).toString()
+                            )
 
                         } else {
                             unsetUiSessionRunning()
