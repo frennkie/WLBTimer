@@ -238,7 +238,7 @@
     <string name="last_n_entries">Last %1$S entries</string>
 
     <string name="cd_btn_start_new">Start new session</string>
-    <string name="cd_btn_end_running">End running session</string>
+    <string name="cd_btn_stop_running">Stop running session</string>
 
     <string name="main_add_off">Day Off</string>
     <string name="main_add_work">Work</string>

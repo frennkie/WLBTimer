@@ -121,7 +121,7 @@
                 android:layout_gravity="bottom|end"
                 android:layout_marginEnd="@dimen/activity_horizontal_margin"
                 android:layout_marginBottom="@dimen/activity_vertical_margin"
-                android:contentDescription="@string/cd_btn_end_running"
+                android:contentDescription="@string/cd_btn_stop_running"
                 app:backgroundTint="@color/colorAccent"
                 app:srcCompat="@drawable/ic_stop_black_24dp" />
 
