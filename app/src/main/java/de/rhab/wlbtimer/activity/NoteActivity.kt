@@ -15,12 +15,15 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import de.rhab.wlbtimer.R
 import de.rhab.wlbtimer.adapter.NoteAdapter
+import de.rhab.wlbtimer.databinding.ActivityNoteBinding
 import de.rhab.wlbtimer.model.Note
 import de.rhab.wlbtimer.model.WlbUser
 
 
 @Keep
 class NoteActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityNoteBinding
 
     private var mAuthListener: FirebaseAuth.AuthStateListener? = null
 
@@ -33,6 +36,8 @@ class NoteActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        binding = ActivityNoteBinding.inflate(layoutInflater)
+
         // check user authentication - don't forget onStart() and onStop()
         mAuthListener = FirebaseAuth.AuthStateListener { auth ->
             if (auth.currentUser == null) {
@@ -40,10 +45,9 @@ class NoteActivity : AppCompatActivity() {
             }
         }
 
-        setContentView(R.layout.activity_note)
+        setContentView(binding.root)
+        setSupportActionBar(binding.myToolbar)
 
-        val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         val buttonAddNote = findViewById<FloatingActionButton>(R.id.button_add_note)
@@ -99,11 +103,13 @@ class NoteActivity : AppCompatActivity() {
 
         mAdapter.setOnItemClickListener(object : NoteAdapter.OnItemClickListener {
             override fun onItemClick(documentSnapshot: DocumentSnapshot, position: Int) {
-                val note = documentSnapshot.toObject(Note::class.java)
+                //val note = documentSnapshot.toObject(Note::class.java)
                 val id = documentSnapshot.id
-                val path = documentSnapshot.reference
-                Toast.makeText(this@NoteActivity,
-                        "Position: $position ID: $id", Toast.LENGTH_SHORT).show()
+                //val path = documentSnapshot.reference
+                Toast.makeText(
+                    this@NoteActivity,
+                    "Position: $position ID: $id", Toast.LENGTH_SHORT
+                ).show()
             }
         })
 

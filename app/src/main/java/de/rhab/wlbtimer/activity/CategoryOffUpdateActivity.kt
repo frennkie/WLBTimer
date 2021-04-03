@@ -16,6 +16,7 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.larswerkman.holocolorpicker.ColorPicker
 import de.rhab.wlbtimer.R
+import de.rhab.wlbtimer.databinding.ActivityCategoryOffUpdateBinding
 import de.rhab.wlbtimer.model.Category
 import de.rhab.wlbtimer.model.Session
 import de.rhab.wlbtimer.model.WlbUser
@@ -23,6 +24,8 @@ import de.rhab.wlbtimer.model.WlbUser
 
 @Keep
 class CategoryOffUpdateActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityCategoryOffUpdateBinding
 
     private val db = FirebaseFirestore.getInstance()
 
@@ -35,6 +38,8 @@ class CategoryOffUpdateActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        binding = ActivityCategoryOffUpdateBinding.inflate(layoutInflater)
+
         // check user authentication - don't forget onStart() and onStop()
         mAuthListener = FirebaseAuth.AuthStateListener { auth ->
             if (auth.currentUser == null) {
@@ -42,10 +47,9 @@ class CategoryOffUpdateActivity : AppCompatActivity() {
             }
         }
 
-        setContentView(R.layout.activity_category_off_update)
+        setContentView(binding.root)
+        setSupportActionBar(binding.myToolbar)
 
-        val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         val mId = intent.getStringExtra("KEY")

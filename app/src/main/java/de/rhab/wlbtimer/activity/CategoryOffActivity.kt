@@ -14,12 +14,15 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import de.rhab.wlbtimer.R
 import de.rhab.wlbtimer.adapter.CategoryOffAdapter
+import de.rhab.wlbtimer.databinding.ActivityCategoryOffBinding
 import de.rhab.wlbtimer.model.Category
 import de.rhab.wlbtimer.model.WlbUser
 
 
 @Keep
 class CategoryOffActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityCategoryOffBinding
 
     private lateinit var mAdapter: CategoryOffAdapter
 
@@ -32,6 +35,8 @@ class CategoryOffActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        binding = ActivityCategoryOffBinding.inflate(layoutInflater)
+
         // check user authentication - don't forget onStart() and onStop()
         mAuthListener = FirebaseAuth.AuthStateListener { auth ->
             if (auth.currentUser == null) {
@@ -39,10 +44,9 @@ class CategoryOffActivity : AppCompatActivity() {
             }
         }
 
-        setContentView(R.layout.activity_category_off)
+        setContentView(binding.root)
+        setSupportActionBar(binding.myToolbar)
 
-        val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         val buttonAddCategoryOff = findViewById<FloatingActionButton>(R.id.button_add_category_off)

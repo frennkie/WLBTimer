@@ -5,12 +5,13 @@ import android.os.Bundle
 import androidx.annotation.Keep
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
-import de.rhab.wlbtimer.R
-import kotlinx.android.synthetic.main.activity_breaks.*
+import de.rhab.wlbtimer.databinding.ActivityBreaksBinding
 
 
 @Keep
 class BreaksActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityBreaksBinding
 
     private var mAuthListener: FirebaseAuth.AuthStateListener? = null
 
@@ -19,6 +20,8 @@ class BreaksActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        binding = ActivityBreaksBinding.inflate(layoutInflater)
+
         // check user authentication - don't forget onStart() and onStop()
         mAuthListener = FirebaseAuth.AuthStateListener { auth ->
             if (auth.currentUser == null) {
@@ -26,9 +29,11 @@ class BreaksActivity : AppCompatActivity() {
             }
         }
 
-        setContentView(R.layout.activity_breaks)
-        setSupportActionBar(toolbar)
+        setContentView(binding.root)
+        setSupportActionBar(binding.myToolbar)
+
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
     }
 
     public override fun onStart() {

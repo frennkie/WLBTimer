@@ -5,14 +5,14 @@ ext.versionMajor = 0
 ext.versionMinor = 23
 ext.versionPatch = 1
 ext.versionClassifier = null
-ext.isDev = true
+ext.isDev = false
 ext.minimumSdkVersion = 23
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
     defaultConfig {
         applicationId "de.rhab.wlbtimer"
-        targetSdkVersion 29
+        targetSdkVersion 30
 
         minSdkVersion project.ext.minimumSdkVersion
         versionCode generateVersionCode() // 230010203
@@ -20,6 +20,9 @@ android {
 
         resConfigs "en"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+    }
+    buildFeatures {
+        viewBinding true
     }
     buildTypes {
         release {

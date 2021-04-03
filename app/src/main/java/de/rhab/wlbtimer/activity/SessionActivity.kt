@@ -15,12 +15,15 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import de.rhab.wlbtimer.R
 import de.rhab.wlbtimer.adapter.SessionAdapter
+import de.rhab.wlbtimer.databinding.ActivitySessionBinding
 import de.rhab.wlbtimer.model.Session
 import de.rhab.wlbtimer.model.WlbUser
 
 
 @Keep
 class SessionActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivitySessionBinding
 
     private var mAuthListener: FirebaseAuth.AuthStateListener? = null
 
@@ -33,6 +36,8 @@ class SessionActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        binding = ActivitySessionBinding.inflate(layoutInflater)
+
         // check user authentication - don't forget onStart() and onStop()
         mAuthListener = FirebaseAuth.AuthStateListener { auth ->
             if (auth.currentUser == null) {
@@ -40,10 +45,9 @@ class SessionActivity : AppCompatActivity() {
             }
         }
 
-        setContentView(R.layout.activity_session)
+        setContentView(binding.root)
+        setSupportActionBar(binding.myToolbar)
 
-        val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         setUpRecyclerView()

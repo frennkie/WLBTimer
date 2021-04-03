@@ -14,10 +14,13 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import de.rhab.wlbtimer.BuildConfig
 import de.rhab.wlbtimer.R
+import de.rhab.wlbtimer.databinding.ActivityReportBinding
 
 
 @Keep
 class ReportActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityReportBinding
 
     private var mAuthListener: FirebaseAuth.AuthStateListener? = null
 
@@ -28,6 +31,8 @@ class ReportActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        binding = ActivityReportBinding.inflate(layoutInflater)
+
         // check user authentication - don't forget onStart() and onStop()
         mAuthListener = FirebaseAuth.AuthStateListener { auth ->
             if (auth.currentUser == null) {
@@ -35,10 +40,9 @@ class ReportActivity : AppCompatActivity() {
             }
         }
 
-        setContentView(R.layout.activity_report)
+        setContentView(binding.root)
+        setSupportActionBar(binding.myToolbar)
 
-        val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
 //        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         val strtext = intent.getStringExtra(INTENT_EXTRA_MESSAGE)

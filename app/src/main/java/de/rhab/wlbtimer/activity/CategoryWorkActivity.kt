@@ -14,12 +14,15 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import de.rhab.wlbtimer.R
 import de.rhab.wlbtimer.adapter.CategoryWorkAdapter
+import de.rhab.wlbtimer.databinding.ActivityCategoryWorkBinding
 import de.rhab.wlbtimer.model.Category
 import de.rhab.wlbtimer.model.WlbUser
 
 
 @Keep
 class CategoryWorkActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityCategoryWorkBinding
 
     private lateinit var mAdapter: CategoryWorkAdapter
 
@@ -32,6 +35,8 @@ class CategoryWorkActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        binding = ActivityCategoryWorkBinding.inflate(layoutInflater)
+
         // check user authentication - don't forget onStart() and onStop()
         mAuthListener = FirebaseAuth.AuthStateListener { auth ->
             if (auth.currentUser == null) {
@@ -39,15 +44,15 @@ class CategoryWorkActivity : AppCompatActivity() {
             }
         }
 
-        setContentView(R.layout.activity_category_work)
+        setContentView(binding.root)
+        setSupportActionBar(binding.myToolbar)
 
-        val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        val buttonAddCategoryWork = findViewById<FloatingActionButton>(R.id.button_add_category_work)
+        val buttonAddCategoryWork =
+            findViewById<FloatingActionButton>(R.id.button_add_category_work)
         buttonAddCategoryWork.setOnClickListener {
-             startActivity(Intent(this@CategoryWorkActivity, CategoryWorkUpdateActivity::class.java))
+            startActivity(Intent(this@CategoryWorkActivity, CategoryWorkUpdateActivity::class.java))
         }
 
         setUpRecyclerView()

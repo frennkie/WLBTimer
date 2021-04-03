@@ -27,16 +27,19 @@ import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 import com.jakewharton.threetenabp.AndroidThreeTen
 import de.rhab.wlbtimer.R
 import de.rhab.wlbtimer.adapter.SessionAdapter
+import de.rhab.wlbtimer.databinding.ActivityMainBinding
 import de.rhab.wlbtimer.fragment.SessionBottomSheetFragment
 import de.rhab.wlbtimer.model.Break
 import de.rhab.wlbtimer.model.Category
 import de.rhab.wlbtimer.model.Session
 import de.rhab.wlbtimer.model.WlbUser
-
+import java.util.concurrent.TimeUnit
 
 
 @Keep
 class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheetListener {
+
+    private lateinit var binding: ActivityMainBinding
 
     private var mAuthListener: FirebaseAuth.AuthStateListener? = null
 
@@ -88,6 +91,8 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate called")
 
+        binding = ActivityMainBinding.inflate(layoutInflater)
+
         // check user authentication - don't forget onStart() and onStop()
         mAuthListener = FirebaseAuth.AuthStateListener { auth ->
             if (auth.currentUser == null) {
@@ -102,10 +107,9 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
         // Java8 310 Backport https://github.com/JakeWharton/ThreeTenABP
         AndroidThreeTen.init(this)
 
-        setContentView(R.layout.activity_main)
+        setContentView(binding.root)
+        setSupportActionBar(binding.myToolbar)
 
-        val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
         val actionbar: ActionBar? = supportActionBar
         actionbar?.apply {
             setDisplayHomeAsUpEnabled(true)
@@ -256,7 +260,7 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
         val configSettings = FirebaseRemoteConfigSettings.Builder()
                 .setDeveloperModeEnabled(BuildConfig.DEBUG)
                 .build()
-        remoteConfig.setConfigSettings(configSettings)
+        remoteConfig.setConfigSettingsAsync(configSettings)
         // [END enable_dev_mode]
 
         // Set default Remote Config parameter values. An app uses the in-app default values, and
@@ -264,12 +268,10 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
         // want to change in the Firebase console. See Best Practices in the README for more
         // information.
         // [START set_default_values]
-        remoteConfig.setDefaults(R.xml.remote_config_defaults)
+        remoteConfig.setDefaultsAsync(R.xml.remote_config_defaults)
         // [END set_default_values]
 
-        val lastNEntries =
-            findViewById<TextView>(de.rhab.wlbtimer.R.id.tv_main_header_last_n_entries)
-        // lastNEntries.text = "Last ${remoteConfig.getString(MAIN_LAST_N_ENTRIES)} Entries"
+        val lastNEntries = findViewById<TextView>(R.id.tv_main_header_last_n_entries)
         lastNEntries.text = getString(
             R.string.last_n_entries,
             remoteConfig.getString(MAIN_LAST_N_ENTRIES)
@@ -294,12 +296,11 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
         remoteConfig.fetch(cacheExpiration)
                 .addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
-//                        Toast.makeText(this, "Fetch Succeeded",
-//                                Toast.LENGTH_SHORT).show()
+                        // Toast.makeText(this, "Fetch Succeeded", Toast.LENGTH_SHORT).show()
 
-                        // After config data is successfully fetched, it must be activated before newly fetched
-                        // values are returned.
-                        remoteConfig.activateFetched()
+                        // After config data is successfully fetched, it must be activated
+                        // before newly fetched values are returned.
+                        remoteConfig.activate()
                     }
                 }
         // [END fetch_config_with_callback]
@@ -308,6 +309,7 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
         // ToDo(frennkie) hm...
         if (mAuth.currentUser != null) {
 
+            setUpTop()
             setUpRecyclerView()
 
         }
@@ -367,6 +369,96 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
         }
     }
 
+    private fun setUpTop() {
+
+        val docRefTenDays = db.collection(WlbUser.FBP)
+            .document(mAuth.currentUser!!.uid)
+            .collection(Session.FBP)
+            .orderBy("tsStart", Query.Direction.DESCENDING)
+            .limit(10)
+
+        docRefTenDays.get()
+            .addOnSuccessListener { documents ->
+                var tenDays: Long = 0
+                for (document in documents) {
+                    Log.d(TAG, "${document.id} => ${document.data}")
+
+                    val session = document.toObject(Session::class.java)
+                    Log.d(TAG, "${document.id} => ${session.getDurationLong()}")
+                    tenDays += session.getDurationLong()
+                }
+
+                val tenDaysStr = String.format(
+                    "%02d:%02d",
+                    TimeUnit.SECONDS.toHours(tenDays),
+                    TimeUnit.SECONDS.toMinutes(tenDays) - TimeUnit.HOURS.toMinutes(
+                        TimeUnit.SECONDS.toHours(
+                            tenDays
+                        )
+                    ),
+                )
+                Log.d(TAG, "10 Day sum: $tenDaysStr")
+
+                val topLeft = findViewById<TextView>(R.id.tv_main_header_left)
+                topLeft.text = getString(R.string.last_10_entries, tenDaysStr)
+
+            }
+            .addOnFailureListener { exception ->
+                Log.w(TAG, "Error getting documents: ", exception)
+
+                val topLeft = findViewById<TextView>(R.id.tv_main_header_left)
+                topLeft.text = getString(R.string.last_10_entries, "N/A")
+
+            }
+
+        val docRefWork = db.collection(WlbUser.FBP)
+            .document(mAuth.currentUser!!.uid)
+            .collection(Session.FBP)
+//            .whereEqualTo("category.type", Category.TYPE_WORK)
+            .orderBy("tsStart", Query.Direction.DESCENDING)
+            .limit(50)
+
+        docRefWork.get()
+            .addOnSuccessListener { documents ->
+                var workWeek: Long = 0
+                var ctr = 0
+                for (document in documents) {
+                    Log.d(TAG, "${document.id} => ${document.data}")
+
+                    val session = document.toObject(Session::class.java)
+
+                    if (session.category?.type.equals(Category.TYPE_WORK)) {
+                        workWeek += session.getDurationLong()
+                        ctr += 1
+                    }
+
+                    // ToDo(frennkie): THIS IS NOT a way to find a work week!
+                    if (ctr > 5) break
+                }
+
+                val workWeekStr = String.format(
+                    "%02d:%02d",
+                    TimeUnit.SECONDS.toHours(workWeek),
+                    TimeUnit.SECONDS.toMinutes(workWeek) - TimeUnit.HOURS.toMinutes(
+                        TimeUnit.SECONDS.toHours(
+                            workWeek
+                        )
+                    ),
+                )
+                Log.d(TAG, "Work Week sum: $workWeekStr")
+
+                val topRight = findViewById<TextView>(R.id.tv_main_header_right)
+                topRight.text = getString(R.string.workweek, workWeekStr)
+
+            }
+            .addOnFailureListener { exception ->
+                Log.w(TAG, "Error getting documents: ", exception)
+
+                val topRight = findViewById<TextView>(R.id.tv_main_header_right)
+                topRight.text = getString(R.string.workweek, "N/A")
+            }
+
+    }
 
     private fun setUpRecyclerView() {
         // make sure that there is an identified user (Guest or sign-in)
@@ -375,8 +467,8 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
         }
 
         val query = db.collection(WlbUser.FBP)
-                .document(mAuth.currentUser!!.uid)
-                .collection(Session.FBP)
+            .document(mAuth.currentUser!!.uid)
+            .collection(Session.FBP)
                 .orderBy("tsStart", Query.Direction.DESCENDING)
                 .limit(remoteConfig.getLong(MAIN_LAST_N_ENTRIES))
 
