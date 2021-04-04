@@ -33,6 +33,9 @@ import de.rhab.wlbtimer.model.Break
 import de.rhab.wlbtimer.model.Category
 import de.rhab.wlbtimer.model.Session
 import de.rhab.wlbtimer.model.WlbUser
+import org.threeten.bp.LocalTime
+import org.threeten.bp.ZonedDateTime
+import org.threeten.bp.temporal.ChronoField
 import java.util.concurrent.TimeUnit
 
 
@@ -249,69 +252,41 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
         }
 
         // Get Remote Config instance.
-        // [START get_remote_config_instance]
-        remoteConfig = FirebaseRemoteConfig.getInstance()
-        // [END get_remote_config_instance]
-
-        // Create a Remote Config Setting to enable developer mode, which you can use to increase
-        // the number of fetches available per hour during development. See Best Practices in the
-        // README for more information.
-        // [START enable_dev_mode]
-        val configSettings = FirebaseRemoteConfigSettings.Builder()
-                .setDeveloperModeEnabled(BuildConfig.DEBUG)
-                .build()
-        remoteConfig.setConfigSettingsAsync(configSettings)
-        // [END enable_dev_mode]
-
-        // Set default Remote Config parameter values. An app uses the in-app default values, and
-        // when you need to adjust those defaults, you set an updated value for only the values you
-        // want to change in the Firebase console. See Best Practices in the README for more
-        // information.
-        // [START set_default_values]
-        remoteConfig.setDefaultsAsync(R.xml.remote_config_defaults)
-        // [END set_default_values]
-
-        val lastNEntries = findViewById<TextView>(R.id.tv_main_header_last_n_entries)
-        lastNEntries.text = getString(
-            R.string.last_n_entries,
-            remoteConfig.getString(MAIN_LAST_N_ENTRIES)
-        )
-
-        val isUsingDeveloperMode = remoteConfig.info.configSettings.isDeveloperModeEnabled
-
-        // If your app is using developer mode, cacheExpiration is set to 0, so each fetch will
-        // retrieve values from the service.
-        val cacheExpiration: Long = if (isUsingDeveloperMode) {
-            0
+        val minimumFetchInvervalInSeconds: Long = if (BuildConfig.DEBUG) {
+            0L
         } else {
-            60 * 60 // 1 hour in seconds.
-            //60 * 60 * 12 // 12 hour in seconds.
+            TimeUnit.HOURS.toSeconds(12)
         }
 
-        // [START fetch_config_with_callback]
-        // cacheExpirationSeconds is set to cacheExpiration here, indicating the next fetch request
-        // will use fetch data from the Remote Config service, rather than cached parameter values,
-        // if cached parameter values are more than cacheExpiration seconds old.
-        // See Best Practices in the README for more information.
-        remoteConfig.fetch(cacheExpiration)
-                .addOnCompleteListener(this) { task ->
-                    if (task.isSuccessful) {
-                        // Toast.makeText(this, "Fetch Succeeded", Toast.LENGTH_SHORT).show()
+        remoteConfig = FirebaseRemoteConfig.getInstance()
+        remoteConfig.setConfigSettingsAsync(
+            FirebaseRemoteConfigSettings.Builder()
+                .setMinimumFetchIntervalInSeconds(minimumFetchInvervalInSeconds)
+                .build()
+        )
+        remoteConfig.setDefaultsAsync(R.xml.remote_config_defaults)
 
-                        // After config data is successfully fetched, it must be activated
-                        // before newly fetched values are returned.
-                        remoteConfig.activate()
-                    }
-                }
-        // [END fetch_config_with_callback]
+        remoteConfig.fetchAndActivate().addOnCompleteListener {
+            Log.d(TAG, "addOnCompleteListener")
+
+            val lastNumberOfEntries = getString(
+                R.string.last_n_entries,
+                remoteConfig.getString(MAIN_LAST_N_ENTRIES)
+            )
+            Log.d(TAG, "addOnCompleteListener: $lastNumberOfEntries")
+
+            binding.tvMainHeaderLastNEntries.text = getString(
+                R.string.last_n_entries,
+                remoteConfig.getString(MAIN_LAST_N_ENTRIES)
+            )
+
+        }
 
 
         // ToDo(frennkie) hm...
         if (mAuth.currentUser != null) {
-
             setUpTop()
             setUpRecyclerView()
-
         }
 
     }
@@ -385,7 +360,11 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
 
                     val session = document.toObject(Session::class.java)
                     Log.d(TAG, "${document.id} => ${session.getDurationLong()}")
-                    tenDays += session.getDurationLong()
+
+                    if (session.category?.type.equals(Category.TYPE_WORK)) {
+                        tenDays += session.getDurationLong()
+                    }
+
                 }
 
                 val tenDaysStr = String.format(
@@ -397,10 +376,9 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
                         )
                     ),
                 )
-                Log.d(TAG, "10 Day sum: $tenDaysStr")
 
-                val topLeft = findViewById<TextView>(R.id.tv_main_header_left)
-                topLeft.text = getString(R.string.last_10_entries, tenDaysStr)
+                Log.d(TAG, "10 Day sum: $tenDaysStr")
+                binding.tvMainHeaderLeft.text = getString(R.string.last_10_entries, tenDaysStr)
 
             }
             .addOnFailureListener { exception ->
@@ -416,24 +394,30 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
             .collection(Session.FBP)
 //            .whereEqualTo("category.type", Category.TYPE_WORK)
             .orderBy("tsStart", Query.Direction.DESCENDING)
-            .limit(50)
+            .limit(25)
 
         docRefWork.get()
             .addOnSuccessListener { documents ->
+                val startOfWeek =
+                    ZonedDateTime.now().with(ChronoField.DAY_OF_WEEK, 1).with(LocalTime.MIN)
+                        .toEpochSecond()
+                val endOfWeek =
+                    ZonedDateTime.now().with(ChronoField.DAY_OF_WEEK, 7).with(LocalTime.MAX)
+                        .toEpochSecond()
+
                 var workWeek: Long = 0
-                var ctr = 0
                 for (document in documents) {
                     Log.d(TAG, "${document.id} => ${document.data}")
 
                     val session = document.toObject(Session::class.java)
 
                     if (session.category?.type.equals(Category.TYPE_WORK)) {
-                        workWeek += session.getDurationLong()
-                        ctr += 1
-                    }
 
-                    // ToDo(frennkie): THIS IS NOT a way to find a work week!
-                    if (ctr > 5) break
+                        if (session.tsStartForward in startOfWeek..endOfWeek) {
+                            workWeek += session.getDurationLong()
+                        }
+
+                    }
                 }
 
                 val workWeekStr = String.format(
@@ -448,14 +432,14 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
                 Log.d(TAG, "Work Week sum: $workWeekStr")
 
                 val topRight = findViewById<TextView>(R.id.tv_main_header_right)
-                topRight.text = getString(R.string.workweek, workWeekStr)
+                topRight.text = getString(R.string.work_week, workWeekStr)
 
             }
             .addOnFailureListener { exception ->
                 Log.w(TAG, "Error getting documents: ", exception)
 
                 val topRight = findViewById<TextView>(R.id.tv_main_header_right)
-                topRight.text = getString(R.string.workweek, "N/A")
+                topRight.text = getString(R.string.work_week, "N/A")
             }
 
     }

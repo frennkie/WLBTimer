@@ -235,8 +235,8 @@
     <string name="top_left">Top left</string>
     <string name="top_right">Top right</string>
 
-    <string name="last_10_entries">10 Days: %1$Sh</string>
-    <string name="workweek">Workweek: %1$Sh</string>
+    <string name="last_10_entries">10 Days: %1$S</string>
+    <string name="work_week">Work Week: %1$S</string>
 
     <string name="last_n_entries">Last %1$S entries</string>
 

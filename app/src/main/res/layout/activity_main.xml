@@ -26,27 +26,20 @@
 
         </com.google.android.material.appbar.AppBarLayout>
 
-        <!--<FrameLayout-->
-        <!--android:id="@+id/content"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="match_parent"-->
-        <!--android:clipToPadding="false"-->
-        <!--app:layout_behavior="@string/appbar_scrolling_view_behavior" />-->
-
         <LinearLayout
-            android:id="@+id/main_top_header"
-            android:layout_width="match_parent"
-            android:layout_height="80dp"
-            android:orientation="vertical"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+                android:id="@+id/main_top_header"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:orientation="vertical"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
             <LinearLayout
-                android:id="@+id/main_top_header3"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:layout_gravity="bottom"
-                android:orientation="horizontal"
-                app:layout_behavior="@string/appbar_scrolling_view_behavior">
+                    android:id="@+id/main_top_header3"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:layout_gravity="bottom"
+                    android:orientation="horizontal"
+                    app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
                 <TextView
                         android:id="@+id/tv_main_header_left"
@@ -71,12 +64,12 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/main_top_header4"
-                android:layout_width="match_parent"
-                android:layout_height="20dp"
-                android:layout_gravity="bottom"
-                android:orientation="horizontal"
-                app:layout_behavior="@string/appbar_scrolling_view_behavior">
+                    android:id="@+id/main_top_header4"
+                    android:layout_width="match_parent"
+                    android:layout_height="20dp"
+                    android:layout_gravity="bottom"
+                    android:orientation="horizontal"
+                    app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
                 <TextView
                         android:id="@+id/tv_main_header_last_n_entries"
@@ -101,9 +94,6 @@
                 android:layout_marginTop="80dp"
                 app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-
-        <!--FAB will move up for Snackbar. This is not per Android Design Guide
-        (https://material.io/develop/android/components/snackbar/) but easier for now-->
         <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/fabStartNew"
                 android:layout_width="wrap_content"
@@ -112,6 +102,7 @@
                 android:layout_marginEnd="@dimen/activity_horizontal_margin"
                 android:layout_marginBottom="@dimen/activity_vertical_margin"
                 android:contentDescription="@string/cd_btn_start_new"
+                app:layout_behavior="com.google.android.material.behavior.HideBottomViewOnScrollBehavior"
                 app:srcCompat="@drawable/ic_play_arrow_black_24dp" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -123,6 +114,7 @@
                 android:layout_marginBottom="@dimen/activity_vertical_margin"
                 android:contentDescription="@string/cd_btn_stop_running"
                 app:backgroundTint="@color/colorAccent"
+                app:layout_behavior="com.google.android.material.behavior.HideBottomViewOnScrollBehavior"
                 app:srcCompat="@drawable/ic_stop_black_24dp" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
