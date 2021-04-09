@@ -2,10 +2,11 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 ext.versionMajor = 0
-ext.versionMinor = 23
-ext.versionPatch = 2
+ext.versionMinor = 25
+ext.versionPatch = 0
 ext.versionClassifier = null
-ext.isDev = true
+ext.isDev = false
+
 ext.minimumSdkVersion = 23
 
 android {

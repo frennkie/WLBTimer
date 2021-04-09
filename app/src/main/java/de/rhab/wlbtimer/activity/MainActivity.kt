@@ -352,42 +352,43 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
             .orderBy("tsStart", Query.Direction.DESCENDING)
             .limit(10)
 
-        docRefTenDays.get()
-            .addOnSuccessListener { documents ->
-                var tenDays: Long = 0
-                for (document in documents) {
-                    Log.d(TAG, "${document.id} => ${document.data}")
-
-                    val session = document.toObject(Session::class.java)
-                    Log.d(TAG, "${document.id} => ${session.getDurationLong()}")
-
-                    if (session.category?.type.equals(Category.TYPE_WORK)) {
-                        tenDays += session.getDurationLong()
-                    }
-
-                }
-
-                val tenDaysStr = String.format(
-                    "%02d:%02d",
-                    TimeUnit.SECONDS.toHours(tenDays),
-                    TimeUnit.SECONDS.toMinutes(tenDays) - TimeUnit.HOURS.toMinutes(
-                        TimeUnit.SECONDS.toHours(
-                            tenDays
-                        )
-                    ),
-                )
-
-                Log.d(TAG, "10 Day sum: $tenDaysStr")
-                binding.tvMainHeaderLeft.text = getString(R.string.last_10_entries, tenDaysStr)
-
-            }
-            .addOnFailureListener { exception ->
-                Log.w(TAG, "Error getting documents: ", exception)
+        docRefTenDays.addSnapshotListener { documents, e ->
+            if (e != null) {
+                Log.w(TAG, "Listen failed.", e)
 
                 val topLeft = findViewById<TextView>(R.id.tv_main_header_left)
                 topLeft.text = getString(R.string.last_10_entries, "N/A")
 
+                return@addSnapshotListener
             }
+
+            var tenDays: Long = 0
+            for (document in documents!!) {
+                Log.d(TAG, "${document.id} => ${document.data}")
+
+                val session = document.toObject(Session::class.java)
+                Log.d(TAG, "${document.id} => ${session.getDurationLong()}")
+
+                if (session.category?.type.equals(Category.TYPE_WORK)) {
+                    tenDays += session.getDurationExcludingBreaksLong()
+                }
+
+            }
+
+            val tenDaysStr = String.format(
+                "%02d:%02d",
+                TimeUnit.SECONDS.toHours(tenDays),
+                TimeUnit.SECONDS.toMinutes(tenDays) - TimeUnit.HOURS.toMinutes(
+                    TimeUnit.SECONDS.toHours(
+                        tenDays
+                    )
+                ),
+            )
+
+            Log.d(TAG, "10 Day sum: $tenDaysStr")
+            binding.tvMainHeaderLeft.text = getString(R.string.last_10_entries, tenDaysStr)
+
+        }
 
         val docRefWork = db.collection(WlbUser.FBP)
             .document(mAuth.currentUser!!.uid)
@@ -396,51 +397,54 @@ class MainActivity : AppCompatActivity(), SessionBottomSheetFragment.BottomSheet
             .orderBy("tsStart", Query.Direction.DESCENDING)
             .limit(25)
 
-        docRefWork.get()
-            .addOnSuccessListener { documents ->
-                val startOfWeek =
-                    ZonedDateTime.now().with(ChronoField.DAY_OF_WEEK, 1).with(LocalTime.MIN)
-                        .toEpochSecond()
-                val endOfWeek =
-                    ZonedDateTime.now().with(ChronoField.DAY_OF_WEEK, 7).with(LocalTime.MAX)
-                        .toEpochSecond()
+        docRefWork.addSnapshotListener { documents, e ->
+            if (e != null) {
+                Log.w(TAG, "Listen failed.", e)
 
-                var workWeek: Long = 0
-                for (document in documents) {
-                    Log.d(TAG, "${document.id} => ${document.data}")
+                val topLeft = findViewById<TextView>(R.id.tv_main_header_left)
+                topLeft.text = getString(R.string.last_10_entries, "N/A")
 
-                    val session = document.toObject(Session::class.java)
+                return@addSnapshotListener
+            }
 
-                    if (session.category?.type.equals(Category.TYPE_WORK)) {
+            val startOfWeek =
+                ZonedDateTime.now().with(ChronoField.DAY_OF_WEEK, 1).with(LocalTime.MIN)
+                    .toEpochSecond()
+            val endOfWeek =
+                ZonedDateTime.now().with(ChronoField.DAY_OF_WEEK, 7).with(LocalTime.MAX)
+                    .toEpochSecond()
 
-                        if (session.tsStartForward in startOfWeek..endOfWeek) {
-                            workWeek += session.getDurationLong()
-                        }
+            var workWeek: Long = 0
+            for (document in documents!!) {
+                Log.d(TAG, "${document.id} => ${document.data}")
 
+                val session = document.toObject(Session::class.java)
+
+                if (session.category?.type.equals(Category.TYPE_WORK)) {
+
+                    if (session.tsStartForward in startOfWeek..endOfWeek) {
+                        workWeek += session.getDurationExcludingBreaksLong()
                     }
+
                 }
-
-                val workWeekStr = String.format(
-                    "%02d:%02d",
-                    TimeUnit.SECONDS.toHours(workWeek),
-                    TimeUnit.SECONDS.toMinutes(workWeek) - TimeUnit.HOURS.toMinutes(
-                        TimeUnit.SECONDS.toHours(
-                            workWeek
-                        )
-                    ),
-                )
-                Log.d(TAG, "Work Week sum: $workWeekStr")
-
-                val topRight = findViewById<TextView>(R.id.tv_main_header_right)
-                topRight.text = getString(R.string.work_week, workWeekStr)
-
             }
-            .addOnFailureListener { exception ->
-                Log.w(TAG, "Error getting documents: ", exception)
 
-                val topRight = findViewById<TextView>(R.id.tv_main_header_right)
-                topRight.text = getString(R.string.work_week, "N/A")
-            }
+            val workWeekStr = String.format(
+                "%02d:%02d",
+                TimeUnit.SECONDS.toHours(workWeek),
+                TimeUnit.SECONDS.toMinutes(workWeek) - TimeUnit.HOURS.toMinutes(
+                    TimeUnit.SECONDS.toHours(
+                        workWeek
+                    )
+                ),
+            )
+            Log.d(TAG, "Work Week sum: $workWeekStr")
+
+            val topRight = findViewById<TextView>(R.id.tv_main_header_right)
+            topRight.text = getString(R.string.work_week, workWeekStr)
+
+        }
+
 
     }
 

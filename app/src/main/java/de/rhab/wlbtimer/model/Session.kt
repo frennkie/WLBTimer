@@ -45,7 +45,7 @@ data class Session(
     @Exclude
     fun getDurationLong(): Long {
         if (this.tsEnd == null) {
-            return -1
+            return -1  // TODO(frennkie) hm..
         }
 
         val startEpoch = ZonedDateTime.parse(this.tsStart)!!.toEpochSecond()
@@ -60,9 +60,9 @@ data class Session(
     }
 
     @Exclude
-    fun getDurationWeightedExcludingBreaks(): String {
+    fun getDurationExcludingBreaksLong(): Long {
         if (this.tsEnd == null) {
-            return "running"
+            return 0  // TODO(frennkie) hm..
         }
 
         var mTotalBreakTime = 0
@@ -85,6 +85,21 @@ data class Session(
         val durationFull = endEpoch - startEpoch
 
         val duration = ((durationFull - mTotalBreakTime) * mFactor).toLong()
+
+        return when {
+            duration < 0 -> -1
+            duration.toInt() == 0 -> 0
+            else -> duration
+        }
+    }
+
+    @Exclude
+    fun getDurationWeightedExcludingBreaks(): String {
+        if (this.tsEnd == null) {
+            return "running"
+        }
+
+        val duration = this.getDurationExcludingBreaksLong()
 
         return when {
             duration < 0 -> "invalid"
